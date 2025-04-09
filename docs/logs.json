@@ -1,0 +1,14 @@
+[
+  {
+    "nome": "Wagner Arantes",
+    "hora": "08:12:35",
+    "status": "✅ Sucesso",
+    "data": "09/04/2025"
+  },
+  {
+    "nome": "João Silva",
+    "hora": "08:15:02",
+    "status": "❌ Falha",
+    "data": "09/04/2025"
+  }
+]
