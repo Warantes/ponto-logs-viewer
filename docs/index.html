@@ -1,11 +1,82 @@
+
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Logs de Ponto</title>
+  <meta charset="UTF-8" />
+  <title>Registros de Ponto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+      color: #007acc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #007acc;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    .sucesso {
+      color: green;
+      font-weight: bold;
+    }
+    .falha {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Visualização de Pontos Registrados</h1>
-  <p>🚀 Essa página irá mostrar os logs dos registros de ponto.</p>
+  <h1>📋 Registros de Ponto</h1>
+  <table id="tabela-logs">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Nome</th>
+        <th>Horário</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    fetch('logs.json')
+      .then(res => res.json())
+      .then(dados => {
+        const corpo = document.querySelector('#tabela-logs tbody');
+        dados.reverse().forEach(registro => {
+          const linha = document.createElement('tr');
+          linha.innerHTML = `
+            <td>${registro.data}</td>
+            <td>${registro.nome}</td>
+            <td>${registro.hora}</td>
+            <td class="${registro.status.includes('✅') ? 'sucesso' : 'falha'}">${registro.status}</td>
+          `;
+          corpo.appendChild(linha);
+        });
+      })
+      .catch(erro => {
+        document.body.innerHTML += "<p style='color:red'>Erro ao carregar os logs.</p>";
+        console.error("Erro ao carregar JSON:", erro);
+      });
+  </script>
 </body>
 </html>
