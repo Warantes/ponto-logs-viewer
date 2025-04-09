@@ -1,51 +1,81 @@
-
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registros de Ponto</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 30px;
-      background: #f7f7f7;
+      background: #f6f6f6;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
     }
     h1 {
-      text-align: center;
-      color: #007acc;
+      color: #1976d2;
     }
     table {
-      width: 100%;
+      margin: 0 auto;
       border-collapse: collapse;
-      background: #fff;
+      width: 90%;
+      max-width: 1000px;
+      background-color: white;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-top: 20px;
     }
     th, td {
       padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
+      border: 1px solid #ddd;
     }
     th {
-      background: #007acc;
+      background-color: #1976d2;
       color: white;
     }
-    tr:hover {
-      background-color: #f1f1f1;
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
     }
-    .sucesso {
+    .status-sucesso {
       color: green;
       font-weight: bold;
     }
-    .falha {
+    .status-falha {
       color: red;
       font-weight: bold;
+    }
+    .filter-container {
+      margin: 20px auto;
+    }
+    input[type="text"], input[type="date"] {
+      padding: 8px;
+      margin: 0 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      background-color: #1976d2;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #125ea8;
     }
   </style>
 </head>
 <body>
-  <h1>📋 Registros de Ponto</h1>
-  <table id="tabela-logs">
+  <h1><i class="fa-solid fa-clipboard-list"></i> Registros de Ponto</h1>
+
+  <div class="filter-container">
+    <input type="text" id="filtroNome" placeholder="Filtrar por nome...">
+    <input type="date" id="filtroData">
+    <button onclick="filtrarTabela()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+    <button onclick="carregarTabela()"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+  </div>
+
+  <table>
     <thead>
       <tr>
         <th>Data</th>
@@ -54,29 +84,44 @@
         <th>Status</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="tabelaLogs"></tbody>
   </table>
 
   <script>
-    fetch('logs.json')
-      .then(res => res.json())
-      .then(dados => {
-        const corpo = document.querySelector('#tabela-logs tbody');
-        dados.reverse().forEach(registro => {
-          const linha = document.createElement('tr');
-          linha.innerHTML = `
-            <td>${registro.data}</td>
-            <td>${registro.nome}</td>
-            <td>${registro.hora}</td>
-            <td class="${registro.status.includes('✅') ? 'sucesso' : 'falha'}">${registro.status}</td>
-          `;
-          corpo.appendChild(linha);
-        });
-      })
-      .catch(erro => {
-        document.body.innerHTML += "<p style='color:red'>Erro ao carregar os logs.</p>";
-        console.error("Erro ao carregar JSON:", erro);
+    async function carregarTabela() {
+      const res = await fetch('logs.json');
+      const logs = await res.json();
+      const tabela = document.getElementById('tabelaLogs');
+      tabela.innerHTML = '';
+      logs.forEach(log => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${log.data}</td>
+          <td>${log.nome}</td>
+          <td>${log.hora ?? '-'}</td>
+          <td class="${log.status.includes('Sucesso') ? 'status-sucesso' : 'status-falha'}">
+            ${log.status.includes('Sucesso') ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>'} ${log.status}
+          </td>
+        `;
+        tabela.appendChild(tr);
       });
+    }
+
+    function filtrarTabela() {
+      const nome = document.getElementById('filtroNome').value.toLowerCase();
+      const data = document.getElementById('filtroData').value.split('-').reverse().join('/') || null;
+
+      const linhas = document.querySelectorAll('#tabelaLogs tr');
+      linhas.forEach(linha => {
+        const tdNome = linha.children[1].innerText.toLowerCase();
+        const tdData = linha.children[0].innerText;
+        const condicaoNome = nome === '' || tdNome.includes(nome);
+        const condicaoData = !data || tdData === data;
+        linha.style.display = condicaoNome && condicaoData ? '' : 'none';
+      });
+    }
+
+    carregarTabela();
   </script>
 </body>
 </html>
