@@ -1,201 +1,204 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registros de Ponto</title>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      transition: background 0.3s, color 0.3s;
-    }
     :root {
-      --bg: #f9f9f9;
-      --text: #111;
-      --card: #fff;
-      --border: #ddd;
+      --bg-color: #fff;
+      --text-color: #111;
+      --header-bg: #f0f0f0;
+      --btn-bg: #f5f5f5;
+      --btn-border: #ccc;
+      --table-border: #ccc;
     }
-    body.dark {
-      --bg: #1e1e1e;
-      --text: #eee;
-      --card: #2b2b2b;
-      --border: #444;
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #eee;
+      --header-bg: #2a2a2a;
+      --btn-bg: #333;
+      --btn-border: #555;
+      --table-border: #444;
     }
-    .container {
-      max-width: 900px;
-      margin: 30px auto;
-      background: var(--card);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.08);
-      border: 1px solid var(--border);
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
     }
     .top-bar {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 1em;
+      gap: 10px;
+      margin-bottom: 1rem;
     }
-    .top-bar input, .top-bar button {
-      margin: 5px;
-      padding: 8px;
+    .top-bar input,
+    .top-bar button {
+      padding: 0.5rem;
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      color: var(--text-color);
+      border-radius: 5px;
     }
-    .summary {
-      margin-bottom: 1em;
+    .top-bar button i {
+      margin-right: 6px;
+    }
+    .resumo {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: var(--header-bg);
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .resumo span {
+      margin-right: 1rem;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 15px;
+      margin-top: 1rem;
     }
     th, td {
-      border: 1px solid var(--border);
-      padding: 8px;
-      text-align: center;
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--table-border);
     }
     th {
-      background-color: var(--bg);
+      background: var(--header-bg);
     }
-    .toggle {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .status-sucesso {
+      color: green;
+      font-weight: bold;
     }
-    .btn-icon {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
+    .status-falha {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="top-bar">
-      <div class="toggle" onclick="toggleTheme()">
-        <i data-lucide="sun" id="themeIcon"></i> <span>Modo Claro/Escuro</span>
-      </div>
-      <input type="text" id="filtroNome" placeholder="🔍 Filtrar por nome">
-      <input type="date" id="dataInicio">
-      <input type="date" id="dataFim">
-      <button onclick="filtrar()">🔎 Filtrar</button>
-      <button onclick="resetar()">🧹 Limpar Filtro</button>
-      <button onclick="baixarCSV()">📥 CSV</button>
-    </div>
+  <h1>📋 Registros de Ponto</h1>
 
-    <div class="summary" id="resumo"></div>
-
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Nome</th>
-          <th>Entrada</th>
-          <th>Saída</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="top-bar">
+    <button onclick="toggleTheme()"><i class="fa fa-moon"></i> Modo Claro/Escuro</button>
+    <input type="text" id="filtroNome" placeholder="🔍 Filtrar por nome" />
+    <input type="date" id="dataInicio" />
+    <input type="date" id="dataFim" />
+    <button onclick="filtrarDados()"><i class="fa fa-search"></i> Filtrar</button>
+    <button onclick="limparFiltros()"><i class="fa fa-paintbrush"></i> Limpar Filtro</button>
+    <button onclick="exportarCSV()"><i class="fa fa-download"></i> CSV</button>
   </div>
 
-  <script>
-    lucide.createIcons();
+  <div class="resumo" id="resumo">Carregando...</div>
 
-    const url = "./logs.json";
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Nome</th>
+        <th>Entrada</th>
+        <th>Saída</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
     let dados = [];
 
-    fetch(url)
-      .then(r => r.json())
-      .then(json => {
-        dados = json;
-        renderTabela(dados);
-      });
+    async function carregarJSON() {
+      const res = await fetch("logs.json");
+      dados = await res.json();
+      limparFiltros();
+    }
 
-    function agruparPorDia(data) {
+    function agruparRegistros(dadosFiltrados) {
       const agrupado = {};
-      data.forEach(({ nome, data, hora, status }) => {
-        const chave = `${nome}-${data}`;
-        if (!agrupado[chave]) {
-          agrupado[chave] = { nome, data, entrada: null, saida: null };
-        }
-        if (status.includes("Sucesso")) {
-          if (!agrupado[chave].entrada) agrupado[chave].entrada = hora;
-          agrupado[chave].saida = hora;
-        }
+      dadosFiltrados.forEach(d => {
+        const chave = `${d.data}-${d.nome}`;
+        if (!agrupado[chave]) agrupado[chave] = { ...d, entrada: null, saida: null };
+        if (d.hora < "12:00:00") agrupado[chave].entrada = d.hora;
+        else agrupado[chave].saida = d.hora;
+        agrupado[chave].status = d.status;
       });
       return Object.values(agrupado);
     }
 
-    function renderTabela(base) {
-      const agrupado = agruparPorDia(base);
-      const tbody = document.querySelector("tbody");
-      tbody.innerHTML = agrupado.map(r => `
-        <tr>
+    function renderizarTabela(dadosFiltrados) {
+      const tbody = document.querySelector("#tabela tbody");
+      tbody.innerHTML = "";
+
+      const agrupados = agruparRegistros(dadosFiltrados);
+      agrupados.forEach(r => {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
           <td>${r.data}</td>
           <td>${r.nome}</td>
-          <td>${r.entrada || '❌'}</td>
-          <td>${r.saida || '❌'}</td>
-        </tr>
-      `).join("");
-
-      const total = agrupado.length;
-      const sucesso = agrupado.filter(r => r.entrada && r.saida).length;
-      const falha = total - sucesso;
-      const porcentagem = total ? ((sucesso / total) * 100).toFixed(1) : 0;
-      document.getElementById("resumo").innerHTML = `
-        <strong>Total:</strong> ${total} |
-        <strong>Sucessos:</strong> ${sucesso} |
-        <strong>Falhas:</strong> ${falha} |
-        <strong>% Sucesso:</strong> ${porcentagem}%
-      `;
-    }
-
-    function filtrar() {
-      const nome = document.getElementById("filtroNome").value.toLowerCase();
-      const ini = document.getElementById("dataInicio").value;
-      const fim = document.getElementById("dataFim").value;
-
-      const filtrado = dados.filter(r => {
-        const dentroData = (!ini || r.data >= ini) && (!fim || r.data <= fim);
-        const contemNome = r.nome.toLowerCase().includes(nome);
-        return dentroData && contemNome;
+          <td>${r.entrada || ""}</td>
+          <td>${r.saida || ""}</td>
+          <td class="${r.status.includes('Sucesso') ? 'status-sucesso' : 'status-falha'}">${r.status}</td>
+        `;
+        tbody.appendChild(linha);
       });
 
-      renderTabela(filtrado);
+      const total = agrupados.length;
+      const sucessos = agrupados.filter(d => d.status.includes("Sucesso")).length;
+      const falhas = agrupados.filter(d => d.status.includes("Falha")).length;
+      const percSucesso = total > 0 ? ((sucessos / total) * 100).toFixed(1) : 0;
+
+      document.getElementById("resumo").innerHTML =
+        `<span>Total: ${total}</span> <span>Sucessos: ${sucessos}</span> <span>Falhas: ${falhas}</span> <span>% Sucesso: ${percSucesso}%</span>`;
     }
 
-    function resetar() {
+    function filtrarDados() {
+      const nome = document.getElementById("filtroNome").value.toLowerCase();
+      const de = document.getElementById("dataInicio").value;
+      const ate = document.getElementById("dataFim").value;
+
+      const filtrado = dados.filter(d => {
+        const nomeMatch = !nome || d.nome.toLowerCase().includes(nome);
+        const dataBr = d.data.split("/").reverse().join("-");
+        const dataMatch = (!de || dataBr >= de) && (!ate || dataBr <= ate);
+        return nomeMatch && dataMatch;
+      });
+
+      renderizarTabela(filtrado);
+    }
+
+    function limparFiltros() {
       document.getElementById("filtroNome").value = "";
       document.getElementById("dataInicio").value = "";
       document.getElementById("dataFim").value = "";
-      renderTabela(dados);
+      renderizarTabela(dados);
     }
 
-    function baixarCSV() {
-      const linhas = [
-        ["Data", "Nome", "Entrada", "Saída"],
-        ...agruparPorDia(dados).map(r => [r.data, r.nome, r.entrada || "", r.saida || ""])
-      ];
-      const csv = linhas.map(l => l.join(",")).join("\n");
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ponto.csv";
-      a.click();
+    function exportarCSV() {
+      let csv = "Data,Nome,Entrada,Saída,Status\n";
+      const linhas = document.querySelectorAll("#tabela tbody tr");
+      linhas.forEach(linha => {
+        const colunas = linha.querySelectorAll("td");
+        const valores = Array.from(colunas).map(td => td.textContent);
+        csv += valores.join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "registros.csv";
+      link.click();
     }
 
     function toggleTheme() {
-      document.body.classList.toggle("dark");
-      const icon = document.getElementById("themeIcon");
-      icon.setAttribute("data-lucide", document.body.classList.contains("dark") ? "moon" : "sun");
-      lucide.createIcons();
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
     }
+
+    carregarJSON();
   </script>
 </body>
 </html>
