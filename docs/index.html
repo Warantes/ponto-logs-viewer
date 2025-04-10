@@ -1,204 +1,237 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registros de Ponto</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.min.css"></script>
   <style>
-    :root {
-      --bg-color: #fff;
-      --text-color: #111;
-      --header-bg: #f0f0f0;
-      --btn-bg: #f5f5f5;
-      --btn-border: #ccc;
-      --table-border: #ccc;
+    body.dark {
+      background-color: #121212;
+      color: #fff;
     }
-    [data-theme="dark"] {
-      --bg-color: #1a1a1a;
-      --text-color: #eee;
-      --header-bg: #2a2a2a;
-      --btn-bg: #333;
-      --btn-border: #555;
-      --table-border: #444;
+
+    body.dark .table {
+      color: #fff;
     }
-    body {
-      background: var(--bg-color);
-      color: var(--text-color);
-      font-family: sans-serif;
-      margin: 0;
-      padding: 1rem;
+
+    body.dark .table-striped tbody tr:nth-of-type(odd) {
+      background-color: #1e1e1e;
     }
-    .top-bar {
+
+    .toggle-btn {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 1rem;
+      gap: 8px;
     }
-    .top-bar input,
-    .top-bar button {
-      padding: 0.5rem;
-      border: 1px solid var(--btn-border);
-      background: var(--btn-bg);
-      color: var(--text-color);
-      border-radius: 5px;
-    }
-    .top-bar button i {
-      margin-right: 6px;
-    }
-    .resumo {
-      margin-bottom: 1rem;
-      padding: 1rem;
-      background: var(--header-bg);
-      border-radius: 8px;
-      font-weight: bold;
-    }
-    .resumo span {
-      margin-right: 1rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid var(--table-border);
-    }
-    th {
-      background: var(--header-bg);
-    }
+
     .status-sucesso {
       color: green;
-      font-weight: bold;
+      font-weight: 500;
     }
+
     .status-falha {
       color: red;
-      font-weight: bold;
+      font-weight: 500;
+    }
+
+    .btn i {
+      margin-right: 4px;
     }
   </style>
 </head>
-<body>
-  <h1>📋 Registros de Ponto</h1>
+<body class="p-3">
 
-  <div class="top-bar">
-    <button onclick="toggleTheme()"><i class="fa fa-moon"></i> Modo Claro/Escuro</button>
-    <input type="text" id="filtroNome" placeholder="🔍 Filtrar por nome" />
-    <input type="date" id="dataInicio" />
-    <input type="date" id="dataFim" />
-    <button onclick="filtrarDados()"><i class="fa fa-search"></i> Filtrar</button>
-    <button onclick="limparFiltros()"><i class="fa fa-paintbrush"></i> Limpar Filtro</button>
-    <button onclick="exportarCSV()"><i class="fa fa-download"></i> CSV</button>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-clipboard-check"></i> Registros de Ponto</h2>
+    <button id="toggleTheme" class="btn btn-outline-secondary toggle-btn">
+      <i class="bi bi-moon-stars"></i> Modo Claro/Escuro
+    </button>
   </div>
 
-  <div class="resumo" id="resumo">Carregando...</div>
+  <div class="row g-2 mb-3 align-items-end">
+    <div class="col-md-3">
+      <input type="text" id="filtroNome" class="form-control" placeholder="🔍 Filtrar por nome">
+    </div>
+    <div class="col-md-2">
+      <input type="date" id="filtroInicio" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <input type="date" id="filtroFim" class="form-control">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary" onclick="aplicarFiltro()">
+        <i class="bi bi-search"></i> Filtrar
+      </button>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-warning" onclick="limparFiltro()">
+        <i class="bi bi-brush"></i> Limpar Filtro
+      </button>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-success" onclick="baixarCSV()">
+        <i class="bi bi-download"></i> CSV
+      </button>
+    </div>
+  </div>
 
-  <table id="tabela">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Nome</th>
-        <th>Entrada</th>
-        <th>Saída</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="mb-2">
+    <strong>Total:</strong> <span id="total">0</span> |
+    <strong>Sucessos:</strong> <span id="sucesso">0</span> |
+    <strong>Falhas:</strong> <span id="falha">0</span> |
+    <strong>% Sucesso:</strong> <span id="porcentagem">0%</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped" id="tabela">
+      <thead class="table-dark">
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Entrada</th>
+          <th>Saída</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
-    let dados = [];
+    let todosRegistros = [];
 
-    async function carregarJSON() {
-      const res = await fetch("logs.json");
-      dados = await res.json();
-      limparFiltros();
+    async function carregarLogs() {
+      const resp = await fetch("logs.json");
+      const dados = await resp.json();
+      todosRegistros = dados;
+      aplicarFiltro();
     }
 
-    function agruparRegistros(dadosFiltrados) {
+    function aplicarFiltro() {
+      const nome = document.getElementById("filtroNome").value.toLowerCase();
+      const inicio = document.getElementById("filtroInicio").value;
+      const fim = document.getElementById("filtroFim").value;
+
+      let filtrados = [...todosRegistros];
+
+      if (nome) {
+        filtrados = filtrados.filter(r => r.nome.toLowerCase().includes(nome));
+      }
+
+      if (inicio) {
+        filtrados = filtrados.filter(r => converterData(r.data) >= inicio);
+      }
+
+      if (fim) {
+        filtrados = filtrados.filter(r => converterData(r.data) <= fim);
+      }
+
+      const agrupados = agruparRegistros(filtrados);
+      atualizarTabela(agrupados);
+    }
+
+    function converterData(dataBR) {
+      const [dia, mes, ano] = dataBR.split("/");
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    function limparFiltro() {
+      document.getElementById("filtroNome").value = "";
+      document.getElementById("filtroInicio").value = "";
+      document.getElementById("filtroFim").value = "";
+      aplicarFiltro();
+    }
+
+    function agruparRegistros(dados) {
       const agrupado = {};
-      dadosFiltrados.forEach(d => {
-        const chave = `${d.data}-${d.nome}`;
-        if (!agrupado[chave]) agrupado[chave] = { ...d, entrada: null, saida: null };
-        if (d.hora < "12:00:00") agrupado[chave].entrada = d.hora;
-        else agrupado[chave].saida = d.hora;
-        agrupado[chave].status = d.status;
-      });
+
+      dados
+        .sort((a, b) => {
+          const dateA = converterData(a.data) + a.hora;
+          const dateB = converterData(b.data) + b.hora;
+          return dateA.localeCompare(dateB);
+        })
+        .forEach(r => {
+          const chave = `${r.data}-${r.nome}`;
+          if (!agrupado[chave]) {
+            agrupado[chave] = {
+              data: r.data,
+              nome: r.nome,
+              entrada: null,
+              saida: null,
+              status: r.status
+            };
+          }
+
+          if (!agrupado[chave].entrada) {
+            agrupado[chave].entrada = r.hora;
+          } else {
+            agrupado[chave].saida = r.hora;
+          }
+
+          if (r.status.includes("Falha")) {
+            agrupado[chave].status = r.status;
+          }
+        });
+
       return Object.values(agrupado);
     }
 
-    function renderizarTabela(dadosFiltrados) {
+    function atualizarTabela(registros) {
       const tbody = document.querySelector("#tabela tbody");
       tbody.innerHTML = "";
 
-      const agrupados = agruparRegistros(dadosFiltrados);
-      agrupados.forEach(r => {
-        const linha = document.createElement("tr");
-        linha.innerHTML = `
+      let sucesso = 0, falha = 0;
+
+      registros.forEach(r => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
           <td>${r.data}</td>
           <td>${r.nome}</td>
           <td>${r.entrada || ""}</td>
           <td>${r.saida || ""}</td>
-          <td class="${r.status.includes('Sucesso') ? 'status-sucesso' : 'status-falha'}">${r.status}</td>
+          <td class="${r.status.includes('Falha') ? 'status-falha' : 'status-sucesso'}">
+            ${r.status.includes("Falha") ? "❌ Falha" : "✅ Sucesso"}
+          </td>
         `;
-        tbody.appendChild(linha);
+
+        if (r.status.includes("Falha")) falha++;
+        else sucesso++;
+
+        tbody.appendChild(tr);
       });
 
-      const total = agrupados.length;
-      const sucessos = agrupados.filter(d => d.status.includes("Sucesso")).length;
-      const falhas = agrupados.filter(d => d.status.includes("Falha")).length;
-      const percSucesso = total > 0 ? ((sucessos / total) * 100).toFixed(1) : 0;
-
-      document.getElementById("resumo").innerHTML =
-        `<span>Total: ${total}</span> <span>Sucessos: ${sucessos}</span> <span>Falhas: ${falhas}</span> <span>% Sucesso: ${percSucesso}%</span>`;
+      const total = sucesso + falha;
+      document.getElementById("total").innerText = total;
+      document.getElementById("sucesso").innerText = sucesso;
+      document.getElementById("falha").innerText = falha;
+      document.getElementById("porcentagem").innerText = total > 0 ? `${((sucesso / total) * 100).toFixed(1)}%` : "0%";
     }
 
-    function filtrarDados() {
-      const nome = document.getElementById("filtroNome").value.toLowerCase();
-      const de = document.getElementById("dataInicio").value;
-      const ate = document.getElementById("dataFim").value;
-
-      const filtrado = dados.filter(d => {
-        const nomeMatch = !nome || d.nome.toLowerCase().includes(nome);
-        const dataBr = d.data.split("/").reverse().join("-");
-        const dataMatch = (!de || dataBr >= de) && (!ate || dataBr <= ate);
-        return nomeMatch && dataMatch;
+    function baixarCSV() {
+      const rows = [["Data", "Nome", "Entrada", "Saída", "Status"]];
+      document.querySelectorAll("#tabela tbody tr").forEach(tr => {
+        const cols = [...tr.children].map(td => td.innerText);
+        rows.push(cols);
       });
 
-      renderizarTabela(filtrado);
-    }
-
-    function limparFiltros() {
-      document.getElementById("filtroNome").value = "";
-      document.getElementById("dataInicio").value = "";
-      document.getElementById("dataFim").value = "";
-      renderizarTabela(dados);
-    }
-
-    function exportarCSV() {
-      let csv = "Data,Nome,Entrada,Saída,Status\n";
-      const linhas = document.querySelectorAll("#tabela tbody tr");
-      linhas.forEach(linha => {
-        const colunas = linha.querySelectorAll("td");
-        const valores = Array.from(colunas).map(td => td.textContent);
-        csv += valores.join(",") + "\n";
-      });
-
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const csvContent = rows.map(e => e.join(";")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "registros.csv";
+      link.download = "registros_ponto.csv";
       link.click();
     }
 
-    function toggleTheme() {
-      const html = document.documentElement;
-      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
-    }
+    document.getElementById("toggleTheme").addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+    });
 
-    carregarJSON();
+    carregarLogs();
   </script>
 </body>
 </html>
