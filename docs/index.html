@@ -1,127 +1,153 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registros de Ponto</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f6f6f6;
+      background-color: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 20px;
-      text-align: center;
+      transition: all 0.3s;
+    }
+    :root {
+      --bg: #ffffff;
+      --text: #333333;
+      --card-bg: #f2f2f2;
+      --border: #dddddd;
+    }
+    .dark-mode {
+      --bg: #1e1e1e;
+      --text: #f0f0f0;
+      --card-bg: #2a2a2a;
+      --border: #444444;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
     h1 {
-      color: #1976d2;
+      margin: 0;
+    }
+    .toggle-btn {
+      cursor: pointer;
+      padding: 8px 12px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
     }
     table {
-      margin: 0 auto;
+      width: 100%;
       border-collapse: collapse;
-      width: 90%;
-      max-width: 1000px;
-      background-color: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: left;
     }
     th {
-      background-color: #1976d2;
-      color: white;
+      background-color: var(--card-bg);
     }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    .status-sucesso {
-      color: green;
-      font-weight: bold;
-    }
-    .status-falha {
-      color: red;
-      font-weight: bold;
-    }
-    .filter-container {
-      margin: 20px auto;
-    }
-    input[type="text"], input[type="date"] {
-      padding: 8px;
-      margin: 0 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      padding: 8px 16px;
-      border: none;
-      background-color: #1976d2;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #125ea8;
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      th {
+        display: none;
+      }
+      td {
+        margin-bottom: 10px;
+        border: none;
+        border-bottom: 1px solid var(--border);
+      }
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+      }
     }
   </style>
 </head>
 <body>
-  <h1><i class="fa-solid fa-clipboard-list"></i> Registros de Ponto</h1>
-
-  <div class="filter-container">
-    <input type="text" id="filtroNome" placeholder="Filtrar por nome...">
-    <input type="date" id="filtroData">
-    <button onclick="filtrarTabela()"><i class="fa-solid fa-filter"></i> Filtrar</button>
-    <button onclick="carregarTabela()"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+  <div class="header">
+    <h1>Registros de Ponto</h1>
+    <button class="toggle-btn" onclick="toggleDarkMode()">Alternar Modo</button>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Nome</th>
-        <th>Horário</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="tabelaLogs"></tbody>
-  </table>
+  <div class="card" id="resumo">
+    <strong>Resumo:</strong> carregando...
+  </div>
+
+  <div class="card">
+    <table id="tabela-registros">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Hora</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
-    async function carregarTabela() {
-      const res = await fetch('logs.json');
-      const logs = await res.json();
-      const tabela = document.getElementById('tabelaLogs');
-      tabela.innerHTML = '';
-      logs.forEach(log => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${log.data}</td>
-          <td>${log.nome}</td>
-          <td>${log.hora ?? '-'}</td>
-          <td class="${log.status.includes('Sucesso') ? 'status-sucesso' : 'status-falha'}">
-            ${log.status.includes('Sucesso') ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>'} ${log.status}
-          </td>
+    const tabela = document.querySelector("#tabela-registros tbody");
+    const resumoEl = document.getElementById("resumo");
+
+    async function carregarRegistros() {
+      const resposta = await fetch("logs.json");
+      const dados = await resposta.json();
+      tabela.innerHTML = "";
+
+      let total = 0;
+      let sucesso = 0;
+      let falha = 0;
+
+      dados.reverse().forEach((registro) => {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td data-label="Data">${registro.data}</td>
+          <td data-label="Nome">${registro.nome}</td>
+          <td data-label="Hora">${registro.hora || "-"}</td>
+          <td data-label="Status">${registro.status}</td>
         `;
-        tabela.appendChild(tr);
+        tabela.appendChild(linha);
+
+        total++;
+        if (registro.status.includes("Sucesso")) sucesso++;
+        if (registro.status.includes("Falha")) falha++;
       });
+
+      const porcentagem = total ? ((sucesso / total) * 100).toFixed(1) : 0;
+      resumoEl.innerHTML = `
+        <strong>Total:</strong> ${total} | 
+        <strong>Sucesso:</strong> ${sucesso} | 
+        <strong>Falha:</strong> ${falha} | 
+        <strong>% Sucesso:</strong> ${porcentagem}%
+      `;
     }
 
-    function filtrarTabela() {
-      const nome = document.getElementById('filtroNome').value.toLowerCase();
-      const data = document.getElementById('filtroData').value.split('-').reverse().join('/') || null;
-
-      const linhas = document.querySelectorAll('#tabelaLogs tr');
-      linhas.forEach(linha => {
-        const tdNome = linha.children[1].innerText.toLowerCase();
-        const tdData = linha.children[0].innerText;
-        const condicaoNome = nome === '' || tdNome.includes(nome);
-        const condicaoData = !data || tdData === data;
-        linha.style.display = condicaoNome && condicaoData ? '' : 'none';
-      });
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
     }
 
-    carregarTabela();
+    carregarRegistros();
+    setInterval(carregarRegistros, 300000); // 5 min
   </script>
 </body>
 </html>
