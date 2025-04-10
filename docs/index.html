@@ -4,239 +4,248 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registros de Ponto</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
   <style>
+    body {
+      transition: background-color 0.3s, color 0.3s;
+    }
     body.dark {
       background-color: #121212;
+      color: #f8f9fa;
+    }
+
+    .table thead {
+      background-color: #1a1a1a;
       color: #fff;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+      background-color: #f2f2f2;
+    }
+
+    body.dark .table-striped tbody tr:nth-of-type(odd) {
+      background-color: #2a2a2a;
     }
 
     body.dark .table {
       color: #fff;
     }
 
-    body.dark .table-striped tbody tr:nth-of-type(odd) {
-      background-color: #1e1e1e;
+    .btn-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .status-sucesso {
-      color: green;
-      font-weight: 500;
+    .form-control:focus {
+      box-shadow: none;
     }
 
-    .status-falha {
-      color: red;
-      font-weight: 500;
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 45px;
+      height: 24px;
     }
 
-    .form-switch .form-check-input {
-      width: 2.5em;
-      height: 1.2em;
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
     }
 
-    .form-switch .form-check-label {
-      margin-left: 0.5em;
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #0d6efd;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(21px);
     }
   </style>
 </head>
-<body class="p-3">
+<body class="dark">
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2><span class="me-2">✅</span>Registros de Ponto</h2>
+      <div class="d-flex align-items-center gap-2">
+        <label class="switch mb-0">
+          <input type="checkbox" id="toggleDarkMode" checked>
+          <span class="slider"></span>
+        </label>
+        <span id="modo-label">Modo Claro/Escuro</span>
+      </div>
+    </div>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2><i class="bi bi-clipboard-check"></i> Registros de Ponto</h2>
-    <div class="form-check form-switch">
-      <input class="form-check-input" type="checkbox" role="switch" id="toggleTheme">
-      <label class="form-check-label" for="toggleTheme">Modo Claro/Escuro</label>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <input type="text" id="nomeInput" class="form-control" placeholder="🔍 Filtrar por nome" />
+      <input type="date" id="dataInicio" class="form-control" />
+      <input type="date" id="dataFim" class="form-control" />
+      <button class="btn btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
+      <button class="btn btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
+      <button class="btn btn-success" onclick="baixarCSV()">⬇️ CSV</button>
     </div>
-  </div>
 
-  <div class="row g-2 mb-3 align-items-end">
-    <div class="col-md-3">
-      <input type="text" id="filtroNome" class="form-control" placeholder="🔍 Filtrar por nome">
+    <div class="mb-3 fw-bold">
+      <span>Total: <span id="total">0</span></span> |
+      <span>Sucessos: <span id="sucessos">0</span></span> |
+      <span>Falhas: <span id="falhas">0</span></span> |
+      <span>% Sucesso: <span id="percentual">0%</span></span>
     </div>
-    <div class="col-md-2">
-      <input type="date" id="filtroInicio" class="form-control">
-    </div>
-    <div class="col-md-2">
-      <input type="date" id="filtroFim" class="form-control">
-    </div>
-    <div class="col-auto">
-      <button class="btn btn-primary" onclick="aplicarFiltro()">
-        <i class="bi bi-search"></i> Filtrar
-      </button>
-    </div>
-    <div class="col-auto">
-      <button class="btn btn-warning" onclick="limparFiltro()">
-        <i class="bi bi-brush"></i> Limpar Filtro
-      </button>
-    </div>
-    <div class="col-auto">
-      <button class="btn btn-success" onclick="baixarCSV()">
-        <i class="bi bi-download"></i> CSV
-      </button>
-    </div>
-  </div>
 
-  <div class="mb-2">
-    <strong>Total:</strong> <span id="total">0</span> |
-    <strong>Sucessos:</strong> <span id="sucesso">0</span> |
-    <strong>Falhas:</strong> <span id="falha">0</span> |
-    <strong>% Sucesso:</strong> <span id="porcentagem">0%</span>
-  </div>
-
-  <div class="table-responsive">
-    <table class="table table-striped" id="tabela">
-      <thead class="table-dark">
-        <tr>
-          <th>Data</th>
-          <th>Nome</th>
-          <th>Entrada</th>
-          <th>Saída</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Nome</th>
+            <th>Entrada</th>
+            <th>Saída</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-registros"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    let todosRegistros = [];
+    const DateTime = luxon.DateTime;
+    let registros = [];
+    let modoEscuro = true;
 
-    async function carregarLogs() {
-      const resp = await fetch("logs.json");
-      const dados = await resp.json();
-      todosRegistros = dados;
-      aplicarFiltro();
-    }
+    fetch('logs.json')
+      .then(res => res.json())
+      .then(dados => {
+        registros = dados;
+        aplicarFiltro();
+      });
 
     function aplicarFiltro() {
-      const nome = document.getElementById("filtroNome").value.toLowerCase();
-      const inicio = document.getElementById("filtroInicio").value;
-      const fim = document.getElementById("filtroFim").value;
+      const nome = document.getElementById('nomeInput').value.toLowerCase();
+      const inicio = document.getElementById('dataInicio').value;
+      const fim = document.getElementById('dataFim').value;
 
-      let filtrados = [...todosRegistros];
+      let filtrado = registros.filter(r => r.status && r.status.includes('Sucesso'));
 
       if (nome) {
-        filtrados = filtrados.filter(r => r.nome.toLowerCase().includes(nome));
+        filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
       }
 
       if (inicio) {
-        filtrados = filtrados.filter(r => converterData(r.data) >= inicio);
+        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, 'dd/MM/yyyy') >= DateTime.fromISO(inicio));
       }
 
       if (fim) {
-        filtrados = filtrados.filter(r => converterData(r.data) <= fim);
+        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, 'dd/MM/yyyy') <= DateTime.fromISO(fim));
       }
 
-      const agrupados = agruparRegistros(filtrados);
-      atualizarTabela(agrupados);
+      mostrarRegistros(filtrado);
     }
 
     function limparFiltro() {
-      document.getElementById("filtroNome").value = "";
-      document.getElementById("filtroInicio").value = "";
-      document.getElementById("filtroFim").value = "";
+      document.getElementById('nomeInput').value = '';
+      document.getElementById('dataInicio').value = '';
+      document.getElementById('dataFim').value = '';
       aplicarFiltro();
     }
 
-    function converterData(dataBR) {
-      const [dia, mes, ano] = dataBR.split("/");
-      return `${ano}-${mes}-${dia}`;
-    }
+    function mostrarRegistros(dados) {
+      const tbody = document.getElementById('tabela-registros');
+      tbody.innerHTML = '';
 
-    function agruparRegistros(dados) {
       const agrupado = {};
 
-      dados
-        .sort((a, b) => {
-          const dateA = converterData(a.data) + a.hora;
-          const dateB = converterData(b.data) + b.hora;
-          return dateA.localeCompare(dateB);
-        })
-        .forEach(r => {
-          const chave = `${r.data}-${r.nome}`;
-          if (!agrupado[chave]) {
-            agrupado[chave] = {
-              data: r.data,
-              nome: r.nome,
-              entrada: null,
-              saida: null,
-              status: r.status
-            };
-          }
-
-          if (!agrupado[chave].entrada) {
-            agrupado[chave].entrada = r.hora;
-          } else {
-            agrupado[chave].saida = r.hora;
-          }
-
-          if (r.status.includes("Falha")) {
-            agrupado[chave].status = r.status;
-          }
-        });
-
-      return Object.values(agrupado);
-    }
-
-    function atualizarTabela(registros) {
-      const tbody = document.querySelector("#tabela tbody");
-      tbody.innerHTML = "";
-
-      let sucesso = 0, falha = 0;
-
-      registros.forEach(r => {
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-          <td>${r.data}</td>
-          <td>${r.nome}</td>
-          <td>${r.entrada || ""}</td>
-          <td>${r.saida || ""}</td>
-          <td class="${r.status.includes('Falha') ? 'status-falha' : 'status-sucesso'}">
-            ${r.status.includes("Falha") ? "❌ Falha" : "✅ Sucesso"}
-          </td>
-        `;
-
-        if (r.status.includes("Falha")) falha++;
-        else sucesso++;
-
-        tbody.appendChild(tr);
+      dados.forEach(r => {
+        const chave = `${r.nome}-${r.data}`;
+        if (!agrupado[chave]) {
+          agrupado[chave] = [];
+        }
+        agrupado[chave].push(r);
       });
 
-      const total = sucesso + falha;
-      document.getElementById("total").innerText = total;
-      document.getElementById("sucesso").innerText = sucesso;
-      document.getElementById("falha").innerText = falha;
-      document.getElementById("porcentagem").innerText = total > 0 ? `${((sucesso / total) * 100).toFixed(1)}%` : "0%";
+      let total = 0, sucesso = 0, falha = 0;
+
+      for (const chave in agrupado) {
+        const [nome, data] = chave.split('-');
+        const entradas = agrupado[chave].sort((a, b) => a.hora.localeCompare(b.hora));
+
+        const entrada = entradas[0]?.hora || '';
+        const saida = entradas.length > 1 ? entradas[entradas.length - 1].hora : '';
+
+        const status = entradas.every(e => e.status.includes('Sucesso')) ? '✅ Sucesso' : '❌ Falha';
+
+        const linha = `
+          <tr>
+            <td>${data}</td>
+            <td>${nome}</td>
+            <td>${entrada}</td>
+            <td>${saida}</td>
+            <td>${status}</td>
+          </tr>
+        `;
+        tbody.innerHTML += linha;
+        total++;
+        if (status.includes('Sucesso')) sucesso++;
+        else falha++;
+      }
+
+      document.getElementById('total').textContent = total;
+      document.getElementById('sucessos').textContent = sucesso;
+      document.getElementById('falhas').textContent = falha;
+      document.getElementById('percentual').textContent = total ? `${((sucesso / total) * 100).toFixed(1)}%` : '0%';
     }
 
     function baixarCSV() {
-      const rows = [["Data", "Nome", "Entrada", "Saída", "Status"]];
-      document.querySelectorAll("#tabela tbody tr").forEach(tr => {
-        const cols = [...tr.children].map(td => td.innerText);
-        rows.push(cols);
+      const linhas = [['Data', 'Nome', 'Entrada', 'Saída', 'Status']];
+      document.querySelectorAll('#tabela-registros tr').forEach(tr => {
+        const cols = [...tr.children].map(td => td.textContent.trim());
+        linhas.push(cols);
       });
 
-      const csvContent = rows.map(e => e.join(";")).join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "registros_ponto.csv";
-      link.click();
+      const csv = linhas.map(l => l.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'registros.csv';
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
-    document.getElementById("toggleTheme").addEventListener("change", () => {
-      document.body.classList.toggle("dark");
+    // Modo escuro
+    const toggle = document.getElementById('toggleDarkMode');
+    toggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark', toggle.checked);
     });
 
-    document.getElementById("filtroNome").addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        aplicarFiltro();
-      }
+    // Enter ativa filtro
+    document.getElementById('nomeInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') aplicarFiltro();
     });
-
-    carregarLogs();
   </script>
 </body>
 </html>
