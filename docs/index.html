@@ -2,19 +2,26 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Registros de Ponto</title>
+  <title>Registros de Ponto - Versão Aprimorada</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
   <style>
+    /* Estilos gerais e tema */
     body {
       font-family: Arial, sans-serif;
       background-color: #fff;
       color: #000;
-      transition: 0.3s;
+      transition: background-color 0.3s, color 0.3s;
+      margin: 0;
+      padding: 20px;
     }
     body.dark {
       background-color: #121212;
       color: #fff;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
     }
     h2 {
       margin-bottom: 0;
@@ -23,19 +30,16 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
+    /* Switch para tema */
     .switch {
       position: relative;
       display: inline-block;
       width: 50px;
       height: 24px;
     }
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .switch input { opacity: 0; }
     .slider {
       position: absolute;
       cursor: pointer;
@@ -61,11 +65,12 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+    /* Inputs e botões */
     .input-row {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
     input, button {
       padding: 8px;
@@ -79,6 +84,21 @@
     .btn-primary { background-color: #0d6efd; color: #fff; }
     .btn-warning { background-color: #ffc107; color: #000; }
     .btn-success { background-color: #198754; color: #fff; }
+    /* Spinner de carregamento */
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0d6efd;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Tabela */
     .table-container {
       overflow-x: auto;
     }
@@ -95,12 +115,10 @@
     th {
       background-color: #212529;
       color: white;
+      cursor: pointer;
     }
     tbody tr:nth-child(even) {
       background-color: #f8f9fa;
-    }
-    body.dark table {
-      color: #fff;
     }
     body.dark th {
       background-color: #343a40;
@@ -116,37 +134,48 @@
       color: red;
       font-weight: bold;
     }
+    /* Responsividade */
+    @media (max-width: 600px) {
+      .input-row {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 <body class="dark">
   <div class="container">
     <div class="topbar">
       <h2>✅ Registros de Ponto</h2>
-      <label class="switch">
+      <label class="switch" aria-label="Alternar tema">
         <input type="checkbox" id="darkSwitch" checked>
         <span class="slider"></span>
       </label>
     </div>
 
+    <!-- Área de resumo -->
     <div id="resumo" style="margin-bottom: 10px; font-weight: bold;"></div>
+    <!-- Área de carregamento -->
+    <div id="loading" style="display: none;"><div class="spinner"></div></div>
 
+    <!-- Filtros de pesquisa -->
     <div class="input-row">
-      <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome">
-      <input type="date" id="dataInicio">
-      <input type="date" id="dataFim">
+      <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome" aria-label="Filtrar por nome">
+      <input type="date" id="dataInicio" aria-label="Data Início">
+      <input type="date" id="dataFim" aria-label="Data Fim">
       <button class="btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
       <button class="btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
       <button class="btn-success" onclick="baixarCSV()">⬇️ CSV</button>
     </div>
 
+    <!-- Tabela de registros -->
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Nome</th>
-            <th>Entrada</th>
-            <th>Saída</th>
+            <th onclick="ordenarTabela(0)">Data</th>
+            <th onclick="ordenarTabela(1)">Nome</th>
+            <th onclick="ordenarTabela(2)">Entrada</th>
+            <th onclick="ordenarTabela(3)">Saída</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -158,20 +187,38 @@
   <script>
     const DateTime = luxon.DateTime;
     let registros = [];
+    let tabelaOrdenadaAsc = true; // Controle de ordenação da tabela
 
-    fetch('logs.json')
-      .then(res => res.json())
-      .then(data => {
-        registros = data;
-        aplicarFiltro();
-      });
+    // Função para exibir o spinner enquanto os dados carregam
+    function mostrarCarregamento(mostrar) {
+      document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
+    }
 
+    // Carrega os dados e aplica o filtro inicial
+    function carregarDados() {
+      mostrarCarregamento(true);
+      fetch('logs.json')
+        .then(res => res.json())
+        .then(data => {
+          registros = data;
+          aplicarFiltro();
+          mostrarCarregamento(false);
+        })
+        .catch(err => {
+          mostrarCarregamento(false);
+          document.getElementById('resumo').innerHTML = "<span class='status-falha'>Erro ao carregar dados.</span>";
+          console.error("Erro ao carregar logs:", err);
+        });
+    }
+    carregarDados();
+
+    // Filtra os registros com base nos inputs e exibe a tabela
     function aplicarFiltro() {
       const nome = document.getElementById('nomeInput').value.toLowerCase();
       const inicio = document.getElementById('dataInicio').value;
       const fim = document.getElementById('dataFim').value;
 
-      let filtrado = registros.filter(r => r.status && r.status.includes('Sucesso'));
+      let filtrado = registros;  // Permite agora ver todos os registros; você pode adicionar filtros por status se desejar
 
       if (nome) {
         filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
@@ -188,6 +235,7 @@
       exibirTabela(filtrado);
     }
 
+    // Limpa os filtros e atualiza a tabela
     function limparFiltro() {
       document.getElementById('nomeInput').value = '';
       document.getElementById('dataInicio').value = '';
@@ -195,6 +243,7 @@
       aplicarFiltro();
     }
 
+    // Exibe os dados na tabela agrupando por nome e data e calcula um resumo
     function exibirTabela(lista) {
       const agrupado = {};
       for (const r of lista) {
@@ -207,34 +256,60 @@
       tbody.innerHTML = '';
 
       let total = 0, sucesso = 0;
-
       for (const chave in agrupado) {
         const [nome, data] = chave.split('-');
-        const registros = agrupado[chave].sort((a, b) => a.hora.localeCompare(b.hora));
-        const entrada = registros[0]?.hora || '';
-        const saida = registros.length > 1 ? registros[registros.length - 1].hora : '';
-        const status = '✅ Sucesso';
-
+        const registrosGrupo = agrupado[chave].sort((a, b) => a.hora.localeCompare(b.hora));
+        const entrada = registrosGrupo[0]?.hora || '';
+        const saida = registrosGrupo.length > 1 ? registrosGrupo[registrosGrupo.length - 1].hora : '';
+        // Supondo que registros com status "Sucesso" devam ser destacados
+        const status = registrosGrupo[0].status.includes('Sucesso') ? '✅ Sucesso' : '❌ Falha';
+  
         tbody.innerHTML += `
           <tr>
             <td>${data}</td>
             <td>${nome}</td>
             <td>${entrada}</td>
             <td>${saida}</td>
-            <td class="status-sucesso">${status}</td>
+            <td class="${status.includes('Sucesso') ? 'status-sucesso' : 'status-falha'}">${status}</td>
           </tr>`;
         total++;
-        sucesso++;
+        if(status.includes('Sucesso')) sucesso++;
       }
 
       document.getElementById('resumo').innerHTML =
         `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + '%': '0%'}</b>`;
     }
 
+    // Ordena a tabela com base na coluna clicada
+    function ordenarTabela(coluna) {
+      const tbody = document.getElementById('tabela-registros');
+      // Coleta as linhas existentes em uma array
+      let linhas = Array.from(tbody.querySelectorAll('tr'));
+      
+      linhas.sort((a, b) => {
+        const valorA = a.children[coluna].textContent.trim();
+        const valorB = b.children[coluna].textContent.trim();
+        if (coluna === 0) { // Coluna de data, converte para objeto Date
+          const dataA = DateTime.fromFormat(valorA, 'dd/MM/yyyy').toMillis();
+          const dataB = DateTime.fromFormat(valorB, 'dd/MM/yyyy').toMillis();
+          return tabelaOrdenadaAsc ? dataA - dataB : dataB - dataA;
+        } else {
+          return tabelaOrdenadaAsc 
+                  ? valorA.localeCompare(valorB) 
+                  : valorB.localeCompare(valorA);
+        }
+      });
+      // Atualiza o tbody com as linhas ordenadas
+      tbody.innerHTML = '';
+      linhas.forEach(linha => tbody.appendChild(linha));
+      tabelaOrdenadaAsc = !tabelaOrdenadaAsc;
+    }
+
+    // Exporta os registros exibidos para um arquivo CSV de forma robusta
     function baixarCSV() {
       const linhas = [['Data', 'Nome', 'Entrada', 'Saída', 'Status']];
       document.querySelectorAll('#tabela-registros tr').forEach(tr => {
-        const cols = [...tr.children].map(td => td.textContent.trim());
+        const cols = Array.from(tr.children).map(td => `"${td.textContent.trim()}"`);
         linhas.push(cols);
       });
       const csv = linhas.map(row => row.join(',')).join('\n');
@@ -247,12 +322,12 @@
       URL.revokeObjectURL(url);
     }
 
-    // Alternar tema
+    // Alterna o tema com base no switch
     document.getElementById('darkSwitch').addEventListener('change', (e) => {
       document.body.classList.toggle('dark', e.target.checked);
     });
 
-    // Enter ativa filtro
+    // Ativa o filtro ao pressionar "Enter" no input de nome
     document.getElementById('nomeInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') aplicarFiltro();
     });
