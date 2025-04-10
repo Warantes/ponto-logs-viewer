@@ -1,169 +1,207 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registros de Ponto</title>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    :root {
-      --bg: #ffffff;
-      --text: #222222;
-      --table-header: #e0e0e0;
-      --card: #f5f5f5;
-    }
-    body.dark {
-      --bg: #1e1e1e;
-      --text: #f5f5f5;
-      --table-header: #333;
-      --card: #2a2a2a;
-    }
     body {
-      font-family: sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 20px;
+      transition: background 0.3s, color 0.3s;
     }
-    h1 {
-      text-align: center;
+    .table th, .table td {
+      vertical-align: middle;
     }
-    .resumo {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 15px;
-      padding: 10px;
-      background: var(--card);
-      border-radius: 8px;
-    }
-    .resumo strong {
-      font-weight: bold;
-    }
-    button {
-      background: #444;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 6px 10px;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    th {
-      background-color: var(--table-header);
-    }
-    .sucesso {
+    .status-sucesso {
       color: green;
       font-weight: bold;
     }
-    .falha {
+    .status-falha {
       color: red;
       font-weight: bold;
     }
-    .badge {
-      font-weight: bold;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
+    .dark-mode {
+      background-color: #121212 !important;
+      color: white !important;
     }
-    @media (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      th {
-        display: none;
-      }
-      td {
-        border: none;
-        border-bottom: 1px solid #ccc;
-        padding: 10px;
-      }
-      td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        display: block;
-      }
+    .dark-mode .table {
+      color: white;
+    }
+    .dark-mode .table-striped tbody tr:nth-of-type(odd) {
+      background-color: #1e1e1e;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+    .toggle-switch input {
+      display: none;
+    }
+    .slider {
+      position: absolute;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      border-radius: 30px;
+      transition: .4s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 24px; width: 24px;
+      left: 4px; bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .4s;
+    }
+    input:checked + .slider {
+      background-color: #0d6efd;
+    }
+    input:checked + .slider:before {
+      transform: translateX(28px);
     }
   </style>
 </head>
-<body>
-  <h1><i class="fas fa-clipboard-list"></i> Registros de Ponto</h1>
-  <div class="resumo">
-    <div>
-      <span>Total: <strong id="total"></strong></span>
-      <span> | Sucesso: <strong id="sucessos"></strong></span>
-      <span> | Falha: <strong id="falhas" class="falha"></strong></span>
-      <span> | % Sucesso: <strong id="percentual"></strong></span>
+<body class="p-3 bg-light">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="fw-bold"><i data-lucide="clipboard-list"></i> Registros de Ponto</h1>
+      <label class="toggle-switch">
+        <input type="checkbox" id="modo-toggle">
+        <span class="slider"></span>
+      </label>
     </div>
-    <button onclick="alternarModo()">Alternar Modo</button>
+
+    <div class="p-3 rounded bg-white shadow-sm mb-3" id="resumo">
+      <span><i data-lucide="list-checks"></i> <strong>Total:</strong> <span id="total">0</span></span> &nbsp;
+      <span><i data-lucide="check-circle"></i> <strong>Sucessos:</strong> <span id="sucessos">0</span></span> &nbsp;
+      <span><i data-lucide="x-circle"></i> <strong>Falhas:</strong> <span id="falhas">0</span></span> &nbsp;
+      <span><i data-lucide="percent-circle"></i> <strong>% Sucesso:</strong> <span id="percentual">0%</span></span>
+      <div class="float-end">
+        <span><i data-lucide="download"></i> <strong>CSV</strong></span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="baixarCSV()"><i data-lucide="download"></i></button>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-4 mb-2">
+        <input type="text" class="form-control" id="filtroNome" placeholder="Filtrar por nome...">
+      </div>
+      <div class="col-md-3 mb-2">
+        <input type="date" class="form-control" id="dataInicio">
+      </div>
+      <div class="col-md-3 mb-2">
+        <input type="date" class="form-control" id="dataFim">
+      </div>
+      <div class="col-md-2 mb-2 d-grid">
+        <button class="btn btn-primary" onclick="filtrar()"><i data-lucide="filter"></i> Filtrar</button>
+      </div>
+    </div>
+
+    <table class="table table-striped table-hover shadow-sm">
+      <thead class="table-secondary">
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Entrada</th>
+          <th>Saída</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-registros"></tbody>
+    </table>
   </div>
-  <table>
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Nome</th>
-        <th>Entrada</th>
-        <th>Saída</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="tabela">
-      <!-- registros -->
-    </tbody>
-  </table>
 
   <script>
-    function alternarModo() {
-      document.body.classList.toggle("dark");
-    }
+    let registros = [];
 
-    async function carregar() {
-      const r = await fetch("logs.json");
-      const dados = await r.json();
-      const agrupado = _.groupBy(dados, r => `${r.data}-${r.nome}`);
-      const linhas = [];
-      let total = 0, falhas = 0;
+    fetch('logs.json')
+      .then(res => res.json())
+      .then(data => {
+        registros = data.sort((a, b) => new Date(`${a.data} ${a.hora}`) - new Date(`${b.data} ${b.hora}`));
+        atualizarTabela();
+        setInterval(atualizarTabela, 120000); // auto refresh 2 min
+      });
 
-      for (const chave in agrupado) {
-        const reg = agrupado[chave];
-        const entrada = reg[0];
-        const saida = reg[1];
-        const status = entrada.status.includes("Sucesso") || (saida && saida.status.includes("Sucesso")) ? "Sucesso" : "Falha";
-        const icone = status === "Sucesso" ? "<span class='badge sucesso'><i class='fas fa-check-circle'></i> Sucesso</span>" : "<span class='badge falha'><i class='fas fa-times-circle'></i> Falha</span>";
+    function atualizarTabela() {
+      const tbody = document.getElementById("tabela-registros");
+      tbody.innerHTML = "";
 
-        linhas.push(`<tr>
-          <td data-label="Data">${entrada.data}</td>
-          <td data-label="Nome">${entrada.nome}</td>
-          <td data-label="Entrada">${entrada.hora || "-"}</td>
-          <td data-label="Saída">${saida?.hora || "-"}</td>
-          <td data-label="Status">${icone}</td>
-        </tr>`);
+      let total = 0, sucessos = 0, falhas = 0;
+      const agrupados = {};
+
+      registros.forEach(r => {
+        const chave = `${r.nome}-${r.data}`;
+        if (!agrupados[chave]) agrupados[chave] = [];
+        agrupados[chave].push(r);
+      });
+
+      Object.entries(agrupados).forEach(([chave, pontos]) => {
+        pontos.sort((a, b) => a.hora.localeCompare(b.hora));
+        const entrada = pontos[0]?.hora || '';
+        const saida = pontos.length > 1 ? pontos[pontos.length - 1]?.hora : '';
+        const status = pontos.every(p => p.status.includes("Sucesso")) ? "✅ Sucesso" : "❌ Falha";
+        const data = pontos[0]?.data;
+        const nome = pontos[0]?.nome;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${data}</td>
+          <td>${nome}</td>
+          <td>${entrada}</td>
+          <td>${saida}</td>
+          <td class="${status.includes('Sucesso') ? 'status-sucesso' : 'status-falha'}">${status}</td>`;
+        tbody.appendChild(row);
 
         total++;
-        if (status === "Falha") falhas++;
-      }
+        if (status.includes("Sucesso")) sucessos++;
+        else falhas++;
+      });
 
-      document.getElementById("tabela").innerHTML = linhas.join("\n");
       document.getElementById("total").textContent = total;
-      document.getElementById("sucessos").textContent = total - falhas;
+      document.getElementById("sucessos").textContent = sucessos;
       document.getElementById("falhas").textContent = falhas;
-      document.getElementById("percentual").textContent = `${Math.round((total - falhas) / total * 100)} %`;
+      document.getElementById("percentual").textContent = total ? `${Math.round((sucessos / total) * 100)} %` : '0 %';
+      lucide.createIcons();
     }
 
-    carregar();
-    setInterval(carregar, 300000); // Atualiza a cada 5 minutos
+    function filtrar() {
+      const nome = document.getElementById("filtroNome").value.toLowerCase();
+      const dataInicio = document.getElementById("dataInicio").value;
+      const dataFim = document.getElementById("dataFim").value;
+
+      const filtrado = registros.filter(r => {
+        const nomeOK = r.nome.toLowerCase().includes(nome);
+        const dataOK =
+          (!dataInicio || r.data >= dataInicio.split('-').reverse().join('/')) &&
+          (!dataFim || r.data <= dataFim.split('-').reverse().join('/'));
+        return nomeOK && dataOK;
+      });
+
+      registros = filtrado;
+      atualizarTabela();
+    }
+
+    function baixarCSV() {
+      let csv = "Data,Nome,Entrada,Saída,Status\n";
+      document.querySelectorAll("#tabela-registros tr").forEach(row => {
+        const cols = row.querySelectorAll("td");
+        const line = [...cols].map(td => `"${td.textContent.trim()}"`).join(",");
+        csv += line + "\n";
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "registros.csv";
+      link.click();
+    }
+
+    document.getElementById("modo-toggle").addEventListener("change", function () {
+      document.body.classList.toggle("dark-mode", this.checked);
+    });
   </script>
 </body>
 </html>
