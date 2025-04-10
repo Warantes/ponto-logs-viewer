@@ -1,62 +1,32 @@
 [
   {
     "nome": "Wagner",
-    "hora": "19:21:40",
+    "hora": "06:42:06",
     "status": "✅ Sucesso",
-    "data": "09/04/2025"
+    "data": "10/04/2025"
   },
   {
     "nome": "Gordinho",
-    "hora": "19:21:49",
+    "hora": "06:42:15",
     "status": "✅ Sucesso",
-    "data": "09/04/2025"
+    "data": "10/04/2025"
   },
   {
     "nome": "Marcinho",
-    "hora": "19:21:59",
+    "hora": "06:42:26",
     "status": "✅ Sucesso",
-    "data": "09/04/2025"
+    "data": "10/04/2025"
   },
   {
     "nome": "Lauro",
-    "hora": "19:22:09",
+    "hora": "06:42:35",
     "status": "✅ Sucesso",
-    "data": "09/04/2025"
+    "data": "10/04/2025"
   },
   {
     "nome": "Rafael",
-    "hora": "19:22:19",
+    "hora": "06:42:44",
     "status": "✅ Sucesso",
-    "data": "09/04/2025"
-  },
-  {
-    "nome": "Wagner",
-    "hora": "19:41:43",
-    "status": "✅ Sucesso",
-    "data": "09/04/2025"
-  },
-  {
-    "nome": "Gordinho",
-    "hora": "19:41:52",
-    "status": "✅ Sucesso",
-    "data": "09/04/2025"
-  },
-  {
-    "nome": "Marcinho",
-    "hora": "19:42:03",
-    "status": "✅ Sucesso",
-    "data": "09/04/2025"
-  },
-  {
-    "nome": "Lauro",
-    "hora": "19:42:13",
-    "status": "✅ Sucesso",
-    "data": "09/04/2025"
-  },
-  {
-    "nome": "Rafael",
-    "hora": "19:42:23",
-    "status": "✅ Sucesso",
-    "data": "09/04/2025"
+    "data": "10/04/2025"
   }
 ]
