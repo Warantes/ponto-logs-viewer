@@ -1,70 +1,49 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Registros de Ponto</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
   <style>
     body {
-      transition: background-color 0.3s, color 0.3s;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #000;
+      transition: 0.3s;
     }
     body.dark {
       background-color: #121212;
-      color: #f8f9fa;
-    }
-
-    .table thead {
-      background-color: #1a1a1a;
       color: #fff;
     }
-
-    .table-striped tbody tr:nth-of-type(odd) {
-      background-color: #f2f2f2;
+    h2 {
+      margin-bottom: 0;
     }
-
-    body.dark .table-striped tbody tr:nth-of-type(odd) {
-      background-color: #2a2a2a;
-    }
-
-    body.dark .table {
-      color: #fff;
-    }
-
-    .btn-toggle {
+    .topbar {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 0.5rem;
+      margin-bottom: 10px;
     }
-
-    .form-control:focus {
-      box-shadow: none;
-    }
-
     .switch {
       position: relative;
       display: inline-block;
-      width: 45px;
+      width: 50px;
       height: 24px;
     }
-
     .switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
-
     .slider {
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
       background-color: #ccc;
-      transition: .4s;
+      transition: 0.4s;
       border-radius: 24px;
     }
-
     .slider:before {
       position: absolute;
       content: "";
@@ -73,50 +52,95 @@
       left: 3px;
       bottom: 3px;
       background-color: white;
-      transition: .4s;
+      transition: 0.4s;
       border-radius: 50%;
     }
-
     input:checked + .slider {
-      background-color: #0d6efd;
+      background-color: #2196F3;
     }
-
     input:checked + .slider:before {
-      transform: translateX(21px);
+      transform: translateX(26px);
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    input, button {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background-color: #0d6efd; color: #fff; }
+    .btn-warning { background-color: #ffc107; color: #000; }
+    .btn-success { background-color: #198754; color: #fff; }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #212529;
+      color: white;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    body.dark table {
+      color: #fff;
+    }
+    body.dark th {
+      background-color: #343a40;
+    }
+    body.dark tbody tr:nth-child(even) {
+      background-color: #1e1e1e;
+    }
+    .status-sucesso {
+      color: green;
+      font-weight: bold;
+    }
+    .status-falha {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body class="dark">
-  <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2><span class="me-2">✅</span>Registros de Ponto</h2>
-      <div class="d-flex align-items-center gap-2">
-        <label class="switch mb-0">
-          <input type="checkbox" id="toggleDarkMode" checked>
-          <span class="slider"></span>
-        </label>
-        <span id="modo-label">Modo Claro/Escuro</span>
-      </div>
+  <div class="container">
+    <div class="topbar">
+      <h2>✅ Registros de Ponto</h2>
+      <label class="switch">
+        <input type="checkbox" id="darkSwitch" checked>
+        <span class="slider"></span>
+      </label>
     </div>
 
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <input type="text" id="nomeInput" class="form-control" placeholder="🔍 Filtrar por nome" />
-      <input type="date" id="dataInicio" class="form-control" />
-      <input type="date" id="dataFim" class="form-control" />
-      <button class="btn btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
-      <button class="btn btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
-      <button class="btn btn-success" onclick="baixarCSV()">⬇️ CSV</button>
+    <div id="resumo" style="margin-bottom: 10px; font-weight: bold;"></div>
+
+    <div class="input-row">
+      <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome">
+      <input type="date" id="dataInicio">
+      <input type="date" id="dataFim">
+      <button class="btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
+      <button class="btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
+      <button class="btn-success" onclick="baixarCSV()">⬇️ CSV</button>
     </div>
 
-    <div class="mb-3 fw-bold">
-      <span>Total: <span id="total">0</span></span> |
-      <span>Sucessos: <span id="sucessos">0</span></span> |
-      <span>Falhas: <span id="falhas">0</span></span> |
-      <span>% Sucesso: <span id="percentual">0%</span></span>
-    </div>
-
-    <div class="table-responsive">
-      <table class="table table-striped">
+    <div class="table-container">
+      <table>
         <thead>
           <tr>
             <th>Data</th>
@@ -134,12 +158,11 @@
   <script>
     const DateTime = luxon.DateTime;
     let registros = [];
-    let modoEscuro = true;
 
     fetch('logs.json')
       .then(res => res.json())
-      .then(dados => {
-        registros = dados;
+      .then(data => {
+        registros = data;
         aplicarFiltro();
       });
 
@@ -153,16 +176,16 @@
       if (nome) {
         filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
       }
-
       if (inicio) {
-        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, 'dd/MM/yyyy') >= DateTime.fromISO(inicio));
+        filtrado = filtrado.filter(r =>
+          DateTime.fromFormat(r.data, 'dd/MM/yyyy') >= DateTime.fromISO(inicio));
       }
-
       if (fim) {
-        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, 'dd/MM/yyyy') <= DateTime.fromISO(fim));
+        filtrado = filtrado.filter(r =>
+          DateTime.fromFormat(r.data, 'dd/MM/yyyy') <= DateTime.fromISO(fim));
       }
 
-      mostrarRegistros(filtrado);
+      exibirTabela(filtrado);
     }
 
     function limparFiltro() {
@@ -172,50 +195,40 @@
       aplicarFiltro();
     }
 
-    function mostrarRegistros(dados) {
+    function exibirTabela(lista) {
+      const agrupado = {};
+      for (const r of lista) {
+        const chave = `${r.nome}-${r.data}`;
+        if (!agrupado[chave]) agrupado[chave] = [];
+        agrupado[chave].push(r);
+      }
+
       const tbody = document.getElementById('tabela-registros');
       tbody.innerHTML = '';
 
-      const agrupado = {};
-
-      dados.forEach(r => {
-        const chave = `${r.nome}-${r.data}`;
-        if (!agrupado[chave]) {
-          agrupado[chave] = [];
-        }
-        agrupado[chave].push(r);
-      });
-
-      let total = 0, sucesso = 0, falha = 0;
+      let total = 0, sucesso = 0;
 
       for (const chave in agrupado) {
         const [nome, data] = chave.split('-');
-        const entradas = agrupado[chave].sort((a, b) => a.hora.localeCompare(b.hora));
+        const registros = agrupado[chave].sort((a, b) => a.hora.localeCompare(b.hora));
+        const entrada = registros[0]?.hora || '';
+        const saida = registros.length > 1 ? registros[registros.length - 1].hora : '';
+        const status = '✅ Sucesso';
 
-        const entrada = entradas[0]?.hora || '';
-        const saida = entradas.length > 1 ? entradas[entradas.length - 1].hora : '';
-
-        const status = entradas.every(e => e.status.includes('Sucesso')) ? '✅ Sucesso' : '❌ Falha';
-
-        const linha = `
+        tbody.innerHTML += `
           <tr>
             <td>${data}</td>
             <td>${nome}</td>
             <td>${entrada}</td>
             <td>${saida}</td>
-            <td>${status}</td>
-          </tr>
-        `;
-        tbody.innerHTML += linha;
+            <td class="status-sucesso">${status}</td>
+          </tr>`;
         total++;
-        if (status.includes('Sucesso')) sucesso++;
-        else falha++;
+        sucesso++;
       }
 
-      document.getElementById('total').textContent = total;
-      document.getElementById('sucessos').textContent = sucesso;
-      document.getElementById('falhas').textContent = falha;
-      document.getElementById('percentual').textContent = total ? `${((sucesso / total) * 100).toFixed(1)}%` : '0%';
+      document.getElementById('resumo').innerHTML =
+        `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + '%': '0%'}</b>`;
     }
 
     function baixarCSV() {
@@ -224,11 +237,9 @@
         const cols = [...tr.children].map(td => td.textContent.trim());
         linhas.push(cols);
       });
-
-      const csv = linhas.map(l => l.join(',')).join('\n');
+      const csv = linhas.map(row => row.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement('a');
       a.href = url;
       a.download = 'registros.csv';
@@ -236,14 +247,13 @@
       URL.revokeObjectURL(url);
     }
 
-    // Modo escuro
-    const toggle = document.getElementById('toggleDarkMode');
-    toggle.addEventListener('change', () => {
-      document.body.classList.toggle('dark', toggle.checked);
+    // Alternar tema
+    document.getElementById('darkSwitch').addEventListener('change', (e) => {
+      document.body.classList.toggle('dark', e.target.checked);
     });
 
     // Enter ativa filtro
-    document.getElementById('nomeInput').addEventListener('keydown', (e) => {
+    document.getElementById('nomeInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') aplicarFiltro();
     });
   </script>
