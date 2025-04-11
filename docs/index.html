@@ -90,6 +90,7 @@
     .btn-primary { background-color: #0d6efd; color: #fff; }
     .btn-warning { background-color: #ffc107; color: #000; }
     .btn-success { background-color: #198754; color: #fff; }
+
     .table-container { overflow-x: auto; }
     table {
       width: 100%;
@@ -114,20 +115,23 @@
       background-color: #1e1e1e;
     }
 
-    /* Ajustes de largura das colunas */
     th:nth-child(1), td:nth-child(1) {
-      width: 110px;
+      max-width: 90px;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     th:nth-child(2), td:nth-child(2) {
-      width: 180px;
+      max-width: 120px;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     th:nth-child(3), td:nth-child(3),
     th:nth-child(4), td:nth-child(4) {
-      width: 120px;
-      white-space: nowrap;
+      max-width: 100px;
       text-align: center;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -224,9 +228,7 @@
 
         const temSucesso = grupo.length > 0;
         const entrada = temSucesso ? grupo[0].hora + " ✅" : "❌";
-        const saida = temSucesso
-          ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + " ✅" : "-")
-          : "❌";
+        const saida = temSucesso ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + " ✅" : "-") : "❌";
 
         tbody.innerHTML += `
           <tr>
