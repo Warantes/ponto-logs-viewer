@@ -2,15 +2,15 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registros de Ponto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #fff;
       color: #000;
-      transition: background-color 0.3s, color 0.3s;
+      transition: 0.3s;
       margin: 0;
       padding: 20px;
     }
@@ -18,20 +18,14 @@
       background-color: #121212;
       color: #fff;
     }
-    .container {
-      max-width: 1100px;
-      margin: auto;
+    h2 {
+      margin-bottom: 0;
     }
     .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .topbar h2 {
-      display: flex;
       align-items: center;
-      gap: 10px;
+      margin-bottom: 10px;
     }
     .switch {
       position: relative;
@@ -47,10 +41,7 @@
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #ccc;
       transition: 0.4s;
       border-radius: 24px;
@@ -67,7 +58,7 @@
       border-radius: 50%;
     }
     input:checked + .slider {
-      background-color: #2196f3;
+      background-color: #2196F3;
     }
     input:checked + .slider:before {
       transform: translateX(26px);
@@ -76,7 +67,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
     input, button {
       padding: 8px;
@@ -90,10 +81,13 @@
     .btn-primary { background-color: #0d6efd; color: #fff; }
     .btn-warning { background-color: #ffc107; color: #000; }
     .btn-success { background-color: #198754; color: #fff; }
-    .table-container { overflow-x: auto; }
+    .table-container {
+      overflow-x: auto;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 10px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -107,14 +101,15 @@
     tbody tr:nth-child(even) {
       background-color: #f8f9fa;
     }
+    body.dark table {
+      color: #fff;
+    }
     body.dark th {
       background-color: #343a40;
     }
     body.dark tbody tr:nth-child(even) {
       background-color: #1e1e1e;
     }
-    .status-sucesso { color: green; font-weight: bold; }
-    .status-falha { color: red; font-weight: bold; }
   </style>
 </head>
 <body class="dark">
@@ -157,7 +152,7 @@
     const DateTime = luxon.DateTime;
     let registros = [];
 
-    fetch("logs.json")
+    fetch('logs.json')
       .then(res => res.json())
       .then(data => {
         registros = data;
@@ -165,9 +160,9 @@
       });
 
     function aplicarFiltro() {
-      const nome = document.getElementById("nomeInput").value.toLowerCase();
-      const inicio = document.getElementById("dataInicio").value;
-      const fim = document.getElementById("dataFim").value;
+      const nome = document.getElementById('nomeInput').value.toLowerCase();
+      const inicio = document.getElementById('dataInicio').value;
+      const fim = document.getElementById('dataFim').value;
 
       let filtrado = registros;
 
@@ -175,19 +170,21 @@
         filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
       }
       if (inicio) {
-        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, "dd/MM/yyyy") >= DateTime.fromISO(inicio));
+        filtrado = filtrado.filter(r =>
+          DateTime.fromFormat(r.data, 'dd/MM/yyyy') >= DateTime.fromISO(inicio));
       }
       if (fim) {
-        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, "dd/MM/yyyy") <= DateTime.fromISO(fim));
+        filtrado = filtrado.filter(r =>
+          DateTime.fromFormat(r.data, 'dd/MM/yyyy') <= DateTime.fromISO(fim));
       }
 
       exibirTabela(filtrado);
     }
 
     function limparFiltro() {
-      document.getElementById("nomeInput").value = "";
-      document.getElementById("dataInicio").value = "";
-      document.getElementById("dataFim").value = "";
+      document.getElementById('nomeInput').value = '';
+      document.getElementById('dataInicio').value = '';
+      document.getElementById('dataFim').value = '';
       aplicarFiltro();
     }
 
@@ -202,16 +199,23 @@
       const tbody = document.getElementById("tabela-registros");
       tbody.innerHTML = "";
 
-      let total = 0,
-        sucesso = 0;
+      let total = 0, sucesso = 0;
 
       for (const chave in agrupado) {
         const [nome, data] = chave.split("-");
-        const grupo = agrupado[chave].filter(r => r.status.includes("Sucesso")).sort((a, b) => (a.hora || "").localeCompare(b.hora));
-        const temSucesso = grupo.length > 0;
+        const grupo = agrupado[chave];
 
-        const entrada = temSucesso ? grupo[0]?.hora + " ✅" : "❌";
-        const saida = temSucesso && grupo.length > 1 ? grupo[grupo.length - 1].hora + " ✅" : (temSucesso ? "" : "❌");
+        const comHora = grupo.filter(r => r.hora !== null).sort((a, b) => a.hora.localeCompare(b.hora));
+        const temSucesso = grupo.some(r => r.status.includes("Sucesso"));
+
+        let entrada = "❌", saida = "❌";
+
+        if (comHora.length === 1) {
+          entrada = `${comHora[0].hora} ✅`;
+        } else if (comHora.length >= 2) {
+          entrada = `${comHora[0].hora} ✅`;
+          saida = `${comHora[comHora.length - 1].hora} ✅`;
+        }
 
         tbody.innerHTML += `
           <tr>
@@ -224,31 +228,32 @@
         if (temSucesso) sucesso++;
       }
 
-      document.getElementById("resumo").innerHTML = `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + "%" : "0%"}</b>`;
+      document.getElementById("resumo").innerHTML =
+        `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + '%' : '0%'}</b>`;
     }
 
     function baixarCSV() {
-      const linhas = [["Data", "Nome", "Entrada", "Saída"]];
-      document.querySelectorAll("#tabela-registros tr").forEach(tr => {
-        const cols = Array.from(tr.children).map(td => td.textContent.trim());
+      const linhas = [['Data', 'Nome', 'Entrada', 'Saída']];
+      document.querySelectorAll('#tabela-registros tr').forEach(tr => {
+        const cols = Array.from(tr.children).map(td => `"${td.textContent.trim().replace('✅', '').replace('❌', '').trim()}"`);
         linhas.push(cols);
       });
-      const csv = linhas.map(row => row.join(";")).join("\n");
-      const blob = new Blob([csv], { type: "text/csv" });
+      const csv = linhas.map(row => row.join(';')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = "registros.csv";
+      a.download = 'registros.csv';
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    document.getElementById("darkSwitch").addEventListener("change", e => {
-      document.body.classList.toggle("dark", e.target.checked);
+    document.getElementById('darkSwitch').addEventListener('change', (e) => {
+      document.body.classList.toggle('dark', e.target.checked);
     });
 
-    document.getElementById("nomeInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") aplicarFiltro();
+    document.getElementById('nomeInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') aplicarFiltro();
     });
   </script>
 </body>
