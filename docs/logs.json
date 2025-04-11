@@ -208,5 +208,35 @@
     "hora": null,
     "status": "❌ Falha",
     "data": "11/04/2025"
+  },
+  {
+    "nome": "Wagner",
+    "hora": "10:37:36",
+    "status": "✅ Sucesso",
+    "data": "11/04/2025"
+  },
+  {
+    "nome": "Gordinho",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "11/04/2025"
+  },
+  {
+    "nome": "Marcinho",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "11/04/2025"
+  },
+  {
+    "nome": "Lauro",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "11/04/2025"
+  },
+  {
+    "nome": "Rafael",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "11/04/2025"
   }
 ]
