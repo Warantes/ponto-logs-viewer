@@ -8,11 +8,15 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #fff;
+      background-color: #fff;
+      color: #000;
       transition: background-color 0.3s, color 0.3s;
       margin: 0;
       padding: 20px;
+    }
+    body.dark {
+      background-color: #121212;
+      color: #fff;
     }
     .container {
       max-width: 1100px;
@@ -87,28 +91,33 @@
     .btn-warning { background-color: #ffc107; color: #000; }
     .btn-success { background-color: #198754; color: #fff; }
     .registro {
-      background-color: #000;
+      background: #000;
       padding: 10px 15px;
-      margin: 8px 0;
-      border-radius: 15px;
+      margin: 5px 0;
+      border-radius: 20px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 16px;
-      font-size: 18px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.4);
+      gap: 15px;
+      font-size: 1rem;
+      box-shadow: 0 0 5px #000;
     }
     .registro span {
       display: flex;
       align-items: center;
       gap: 5px;
     }
-    .registro .data { color: #ccc; }
-    .registro .entrada { color: #00ff00; }
-    .registro .saida { color: #00ff00; }
+    .registro .ok {
+      color: #00ff55;
+      font-weight: bold;
+    }
+    .registro .fail {
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
-<body>
+<body class="dark">
   <div class="container">
     <div class="topbar">
       <h2>✅ Registros de Ponto</h2>
@@ -117,7 +126,9 @@
         <span class="slider"></span>
       </label>
     </div>
+
     <div id="resumo" style="margin-bottom: 10px; font-weight: bold;"></div>
+
     <div class="input-row">
       <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome" />
       <input type="date" id="dataInicio" />
@@ -126,11 +137,14 @@
       <button class="btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
       <button class="btn-success" onclick="baixarCSV()">⬇️ CSV</button>
     </div>
-    <div id="registrosContainer"></div>
+
+    <div id="tabela-registros"></div>
   </div>
+
   <script>
     const DateTime = luxon.DateTime;
     let registros = [];
+
     fetch("logs.json")
       .then(res => res.json())
       .then(data => {
@@ -142,11 +156,13 @@
       const nome = document.getElementById("nomeInput").value.toLowerCase();
       const inicio = document.getElementById("dataInicio").value;
       const fim = document.getElementById("dataFim").value;
+
       let filtrado = registros;
       if (nome) filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
       if (inicio) filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, "dd/MM/yyyy") >= DateTime.fromISO(inicio));
       if (fim) filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, "dd/MM/yyyy") <= DateTime.fromISO(fim));
-      exibirRegistros(filtrado);
+
+      exibirTabela(filtrado);
     }
 
     function limparFiltro() {
@@ -156,40 +172,50 @@
       aplicarFiltro();
     }
 
-    function exibirRegistros(lista) {
+    function exibirTabela(lista) {
       const agrupado = {};
       for (const r of lista) {
         const chave = `${r.nome}-${r.data}`;
         if (!agrupado[chave]) agrupado[chave] = [];
         agrupado[chave].push(r);
       }
-      const container = document.getElementById("registrosContainer");
-      container.innerHTML = "";
+
+      const tbody = document.getElementById("tabela-registros");
+      tbody.innerHTML = "";
+
       let total = 0, sucesso = 0;
+
       for (const chave in agrupado) {
         const [nome, data] = chave.split("-");
         const grupo = agrupado[chave].filter(r => r.status.includes("Sucesso")).sort((a, b) => (a.hora || "").localeCompare(b.hora));
         const temSucesso = grupo.length > 0;
+
         const entrada = temSucesso ? grupo[0]?.hora : null;
         const saida = temSucesso && grupo.length > 1 ? grupo[grupo.length - 1].hora : null;
 
-        container.innerHTML += `
+        tbody.innerHTML += `
           <div class="registro">
-            <span>📅 <strong>Data:</strong> ${data}</span>
-            <span>🧍 <strong>Nome:</strong> ${nome}</span>
-            <span>⏱ <strong>Entrada:</strong> <span class="entrada">${entrada || '❌'}</span></span>
-            <span>⏱ <strong>Saída:</strong> <span class="saida">${saida || '❌'}</span></span>
-          </div>`;
+            <span>📅 <b>Data:</b> ${data}</span>
+            <span>🧍‍♂️ <b>Nome:</b> ${nome}</span>
+            <span>⏱️ <b>Entrada:</b> <span class="${entrada ? 'ok' : 'fail'}">${entrada || '❌'}</span></span>
+            <span>⏱️ <b>Saída:</b> <span class="${saida ? 'ok' : 'fail'}">${saida || '❌'}</span></span>
+          </div>
+        `;
+
         total++;
         if (temSucesso) sucesso++;
       }
+
       document.getElementById("resumo").innerHTML = `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + "%" : "0%"}</b>`;
     }
 
     function baixarCSV() {
       const linhas = [["Data", "Nome", "Entrada", "Saída"]];
-      registros.forEach(r => linhas.push([r.data, r.nome, r.status.includes("Sucesso") ? r.hora : "", r.status.includes("Sucesso") ? r.hora : ""]));
-      const csv = linhas.map(row => row.join(";")) .join("\n");
+      document.querySelectorAll(".registro").forEach(div => {
+        const valores = Array.from(div.querySelectorAll("span")).map(s => s.innerText.split(':').slice(1).join(':').trim());
+        linhas.push(valores);
+      });
+      const csv = linhas.map(row => row.join(";")).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
