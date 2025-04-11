@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Registros de Ponto</title>
+  <title>✅ Registros de Ponto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
   <style>
@@ -21,9 +21,6 @@
     .container {
       max-width: 1000px;
       margin: auto;
-    }
-    h2 {
-      margin-bottom: 0;
     }
     .topbar {
       display: flex;
@@ -110,6 +107,7 @@
     th {
       background-color: #212529;
       color: white;
+      cursor: pointer;
     }
     tbody tr:nth-child(even) {
       background-color: #f8f9fa;
@@ -120,18 +118,10 @@
     body.dark tbody tr:nth-child(even) {
       background-color: #1e1e1e;
     }
-    .status-sucesso {
-      color: green;
-      font-weight: bold;
-    }
-    .status-falha {
-      color: red;
-      font-weight: bold;
-    }
+    .status-sucesso { color: green; font-weight: bold; }
+    .status-falha { color: red; font-weight: bold; }
     @media (max-width: 600px) {
-      .input-row {
-        flex-direction: column;
-      }
+      .input-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -140,7 +130,7 @@
     <div class="topbar">
       <h2>✅ Registros de Ponto</h2>
       <label class="switch" aria-label="Alternar tema">
-        <input type="checkbox" id="darkSwitch" checked>
+        <input type="checkbox" id="darkSwitch" checked />
         <span class="slider"></span>
       </label>
     </div>
@@ -149,9 +139,9 @@
     <div id="loading" style="display: none;"><div class="spinner"></div></div>
 
     <div class="input-row">
-      <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome" aria-label="Filtrar por nome">
-      <input type="date" id="dataInicio" aria-label="Data Início">
-      <input type="date" id="dataFim" aria-label="Data Fim">
+      <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome" />
+      <input type="date" id="dataInicio" />
+      <input type="date" id="dataFim" />
       <button class="btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
       <button class="btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
       <button class="btn-success" onclick="baixarCSV()">⬇️ CSV</button>
@@ -161,8 +151,8 @@
       <table>
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Nome</th>
+            <th onclick="ordenarTabela(0)">Data</th>
+            <th onclick="ordenarTabela(1)">Nome</th>
             <th>Entrada</th>
             <th>Saída</th>
             <th>Status</th>
@@ -176,17 +166,29 @@
   <script>
     const DateTime = luxon.DateTime;
     let registros = [];
+    let tabelaOrdenadaAsc = true;
 
-    fetch('logs.json')
-      .then(res => res.json())
-      .then(data => {
-        registros = data;
-        aplicarFiltro();
-      })
-      .catch(err => {
-        document.getElementById('resumo').innerHTML = "<span class='status-falha'>Erro ao carregar dados.</span>";
-        console.error("Erro ao carregar logs:", err);
-      });
+    function mostrarCarregamento(mostrar) {
+      document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
+    }
+
+    function carregarDados() {
+      mostrarCarregamento(true);
+      fetch('logs.json')
+        .then(res => res.json())
+        .then(data => {
+          registros = data;
+          aplicarFiltro();
+          mostrarCarregamento(false);
+        })
+        .catch(err => {
+          mostrarCarregamento(false);
+          document.getElementById('resumo').innerHTML = "<span class='status-falha'>Erro ao carregar dados.</span>";
+          console.error("Erro ao carregar logs:", err);
+        });
+    }
+
+    carregarDados();
 
     function aplicarFiltro() {
       const nome = document.getElementById('nomeInput').value.toLowerCase();
@@ -199,12 +201,10 @@
         filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
       }
       if (inicio) {
-        filtrado = filtrado.filter(r =>
-          DateTime.fromFormat(r.data, 'dd/MM/yyyy') >= DateTime.fromISO(inicio));
+        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, 'dd/MM/yyyy') >= DateTime.fromISO(inicio));
       }
       if (fim) {
-        filtrado = filtrado.filter(r =>
-          DateTime.fromFormat(r.data, 'dd/MM/yyyy') <= DateTime.fromISO(fim));
+        filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, 'dd/MM/yyyy') <= DateTime.fromISO(fim));
       }
 
       exibirTabela(filtrado);
@@ -231,16 +231,13 @@
       let total = 0, sucesso = 0;
       for (const chave in agrupado) {
         const [nome, data] = chave.split('-');
+        const grupo = agrupado[chave];
 
-        const registrosGrupo = agrupado[chave].sort((a, b) => {
-          const horaA = a.hora || '';
-          const horaB = b.hora || '';
-          return horaA.localeCompare(horaB);
-        });
+        const registrosSucesso = grupo.filter(r => r.status.includes('Sucesso')).sort((a, b) => (a.hora || '').localeCompare(b.hora));
 
-        const entrada = registrosGrupo[0]?.hora || '';
-        const saida = registrosGrupo.length > 1 ? registrosGrupo[registrosGrupo.length - 1].hora : '';
-        const status = registrosGrupo[0].status.includes('Sucesso') ? '✅ Sucesso' : '❌ Falha';
+        const entrada = registrosSucesso[0]?.hora || '';
+        const saida = registrosSucesso.length > 1 ? registrosSucesso[registrosSucesso.length - 1].hora : '';
+        const status = registrosSucesso.length > 0 ? '✅ Sucesso' : '❌ Falha';
 
         tbody.innerHTML += `
           <tr>
@@ -258,14 +255,33 @@
         `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + '%' : '0%'}</b>`;
     }
 
+    function ordenarTabela(coluna) {
+      const tbody = document.getElementById('tabela-registros');
+      let linhas = Array.from(tbody.querySelectorAll('tr'));
+      linhas.sort((a, b) => {
+        const valorA = a.children[coluna].textContent.trim();
+        const valorB = b.children[coluna].textContent.trim();
+        if (coluna === 0) {
+          const dataA = DateTime.fromFormat(valorA, 'dd/MM/yyyy').toMillis();
+          const dataB = DateTime.fromFormat(valorB, 'dd/MM/yyyy').toMillis();
+          return tabelaOrdenadaAsc ? dataA - dataB : dataB - dataA;
+        } else {
+          return tabelaOrdenadaAsc ? valorA.localeCompare(valorB) : valorB.localeCompare(valorA);
+        }
+      });
+      tbody.innerHTML = '';
+      linhas.forEach(linha => tbody.appendChild(linha));
+      tabelaOrdenadaAsc = !tabelaOrdenadaAsc;
+    }
+
     function baixarCSV() {
       const linhas = [['Data', 'Nome', 'Entrada', 'Saída', 'Status']];
       document.querySelectorAll('#tabela-registros tr').forEach(tr => {
-        const cols = Array.from(tr.children).map(td => td.textContent.trim().replace(/^✅|^❌/, ''));
+        const cols = Array.from(tr.children).map(td => td.textContent.trim().replace(/✅|❌/g, '').trim());
         linhas.push(cols);
       });
       const csv = linhas.map(row => row.join(';')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
