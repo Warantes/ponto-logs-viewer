@@ -113,8 +113,22 @@
     body.dark tbody tr:nth-child(even) {
       background-color: #1e1e1e;
     }
-    .status-sucesso { color: green; font-weight: bold; }
-    .status-falha { color: red; font-weight: bold; }
+
+    /* Ajustes de largura das colunas */
+    th:nth-child(1), td:nth-child(1) {
+      width: 110px;
+      white-space: nowrap;
+    }
+    th:nth-child(2), td:nth-child(2) {
+      width: 180px;
+      white-space: nowrap;
+    }
+    th:nth-child(3), td:nth-child(3),
+    th:nth-child(4), td:nth-child(4) {
+      width: 120px;
+      white-space: nowrap;
+      text-align: center;
+    }
   </style>
 </head>
 <body class="dark">
@@ -214,14 +228,13 @@
           ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + " ✅" : "-")
           : "❌";
 
-      tbody.innerHTML += `
-        <tr>
-          <td>📅 ${data}</td>
-          <td>👤 ${nome}</td>
-          <td>${entrada}</td>
-          <td>${saida}</td>
-        </tr>`;
-
+        tbody.innerHTML += `
+          <tr>
+            <td>📅 ${data}</td>
+            <td>👤 ${nome}</td>
+            <td>${entrada}</td>
+            <td>${saida}</td>
+          </tr>`;
         total++;
         if (temSucesso) sucesso++;
       }
