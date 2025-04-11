@@ -10,7 +10,7 @@
       font-family: Arial, sans-serif;
       background-color: #fff;
       color: #000;
-      transition: background-color 0.3s, color 0.3s;
+      transition: 0.3s;
       margin: 0;
       padding: 20px;
     }
@@ -18,21 +18,31 @@
       background-color: #121212;
       color: #fff;
     }
-    .container {
-      max-width: 1100px;
-      margin: auto;
-    }
     .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-bottom: 20px;
     }
-    .topbar h2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    input, button {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
+    button {
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background-color: #0d6efd; color: #fff; }
+    .btn-warning { background-color: #ffc107; color: #000; }
+    .btn-success { background-color: #198754; color: #fff; }
     .switch {
       position: relative;
       display: inline-block;
@@ -72,74 +82,47 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
-    .input-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    input, button {
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-    }
-    .btn-primary { background-color: #0d6efd; color: #fff; }
-    .btn-warning { background-color: #ffc107; color: #000; }
-    .btn-success { background-color: #198754; color: #fff; }
     .registro {
-      background: #000;
-      padding: 10px 15px;
-      margin: 5px 0;
-      border-radius: 20px;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 140px 1fr 140px 140px;
+      gap: 10px;
       align-items: center;
-      gap: 15px;
-      font-size: 1rem;
-      box-shadow: 0 0 5px #000;
+      background-color: #000;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 25px;
+      margin-bottom: 10px;
+      box-shadow: 0 0 5px #aaa;
     }
-    .registro span {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    body:not(.dark) .registro {
+      background-color: #f1f1f1;
+      color: #000;
     }
-    .registro .ok {
-      color: #00ff55;
-      font-weight: bold;
-    }
-    .registro .fail {
-      color: red;
-      font-weight: bold;
-    }
+    .ok { color: limegreen; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
   </style>
 </head>
 <body class="dark">
-  <div class="container">
-    <div class="topbar">
-      <h2>✅ Registros de Ponto</h2>
-      <label class="switch">
-        <input type="checkbox" id="darkSwitch" checked />
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div id="resumo" style="margin-bottom: 10px; font-weight: bold;"></div>
-
-    <div class="input-row">
-      <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome" />
-      <input type="date" id="dataInicio" />
-      <input type="date" id="dataFim" />
-      <button class="btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
-      <button class="btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
-      <button class="btn-success" onclick="baixarCSV()">⬇️ CSV</button>
-    </div>
-
-    <div id="tabela-registros"></div>
+  <div class="topbar">
+    <h2>✅ Registros de Ponto</h2>
+    <label class="switch">
+      <input type="checkbox" id="darkSwitch" checked />
+      <span class="slider"></span>
+    </label>
   </div>
+
+  <div id="resumo" style="margin-bottom: 10px; font-weight: bold;"></div>
+
+  <div class="input-row">
+    <input type="text" id="nomeInput" placeholder="🔍 Filtrar por nome" />
+    <input type="date" id="dataInicio" />
+    <input type="date" id="dataFim" />
+    <button class="btn-primary" onclick="aplicarFiltro()">🔎 Filtrar</button>
+    <button class="btn-warning" onclick="limparFiltro()">🖌 Limpar Filtro</button>
+    <button class="btn-success" onclick="baixarCSV()">⬇️ CSV</button>
+  </div>
+
+  <div id="tabela-registros"></div>
 
   <script>
     const DateTime = luxon.DateTime;
@@ -156,8 +139,8 @@
       const nome = document.getElementById("nomeInput").value.toLowerCase();
       const inicio = document.getElementById("dataInicio").value;
       const fim = document.getElementById("dataFim").value;
-
       let filtrado = registros;
+
       if (nome) filtrado = filtrado.filter(r => r.nome.toLowerCase().includes(nome));
       if (inicio) filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, "dd/MM/yyyy") >= DateTime.fromISO(inicio));
       if (fim) filtrado = filtrado.filter(r => DateTime.fromFormat(r.data, "dd/MM/yyyy") <= DateTime.fromISO(fim));
@@ -180,42 +163,43 @@
         agrupado[chave].push(r);
       }
 
-      const tbody = document.getElementById("tabela-registros");
-      tbody.innerHTML = "";
+      const container = document.getElementById("tabela-registros");
+      container.innerHTML = "";
 
       let total = 0, sucesso = 0;
 
       for (const chave in agrupado) {
         const [nome, data] = chave.split("-");
-        const grupo = agrupado[chave].filter(r => r.status.includes("Sucesso")).sort((a, b) => (a.hora || "").localeCompare(b.hora));
+        const grupo = agrupado[chave].filter(r => r.status.includes("Sucesso")).sort((a, b) => a.hora.localeCompare(b.hora));
         const temSucesso = grupo.length > 0;
 
         const entrada = temSucesso ? grupo[0]?.hora : null;
         const saida = temSucesso && grupo.length > 1 ? grupo[grupo.length - 1].hora : null;
 
-        tbody.innerHTML += `
-          <div class="registro">
-            <span>📅 <b>Data:</b> ${data}</span>
-            <span>🧍‍♂️ <b>Nome:</b> ${nome}</span>
-            <span>⏱️ <b>Entrada:</b> <span class="${entrada ? 'ok' : 'fail'}">${entrada || '❌'}</span></span>
-            <span>⏱️ <b>Saída:</b> <span class="${saida ? 'ok' : 'fail'}">${saida || '❌'}</span></span>
-          </div>
+        const div = document.createElement("div");
+        div.className = "registro";
+        div.innerHTML = `
+          📅 <b>${data}</b>
+          👤 <b>${nome}</b>
+          ⏱️ <span class="${entrada ? 'ok' : 'fail'}">${entrada || '❌'}</span>
+          ⏱️ <span class="${saida ? 'ok' : 'fail'}">${saida || '❌'}</span>
         `;
-
+        container.appendChild(div);
         total++;
         if (temSucesso) sucesso++;
       }
 
-      document.getElementById("resumo").innerHTML = `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + "%" : "0%"}</b>`;
+      document.getElementById("resumo").innerHTML =
+        `Total: <b>${total}</b> | Sucessos: <b>${sucesso}</b> | Falhas: <b>${total - sucesso}</b> | % Sucesso: <b>${total ? ((sucesso / total) * 100).toFixed(1) + "%" : "0%"}</b>`;
     }
 
     function baixarCSV() {
       const linhas = [["Data", "Nome", "Entrada", "Saída"]];
       document.querySelectorAll(".registro").forEach(div => {
-        const valores = Array.from(div.querySelectorAll("span")).map(s => s.innerText.split(':').slice(1).join(':').trim());
-        linhas.push(valores);
+        const cols = Array.from(div.children).map(td => td.textContent.trim());
+        linhas.push(cols);
       });
-      const csv = linhas.map(row => row.join(";")).join("\n");
+      const csv = linhas.map(row => row.join(";")) + "\n";
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -227,6 +211,7 @@
 
     document.getElementById("darkSwitch").addEventListener("change", e => {
       document.body.classList.toggle("dark", e.target.checked);
+      aplicarFiltro();
     });
 
     document.getElementById("nomeInput").addEventListener("keydown", e => {
