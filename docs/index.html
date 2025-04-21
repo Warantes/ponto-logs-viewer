@@ -114,7 +114,6 @@
     body.dark tbody tr:nth-child(even) {
       background-color: #1e1e1e;
     }
-
     th:nth-child(1), td:nth-child(1) {
       max-width: 90px;
       white-space: nowrap;
@@ -138,7 +137,7 @@
 <body class="dark">
   <div class="container">
     <div class="topbar">
-      <h2>🍻 Registros de Ponto</h2>
+      <h2>✅ Registros de Ponto</h2>
       <label class="switch">
         <input type="checkbox" id="darkSwitch" checked />
         <span class="slider"></span>
@@ -168,6 +167,11 @@
         </thead>
         <tbody id="tabela-registros"></tbody>
       </table>
+      <div style="margin-top: 12px; font-size: 1em; text-align: center; color: #888;">
+        <b>🕒 Legenda dos Ícones:</b><br>
+        <span style="font-size: 1.4em;">☕</span> <i>Antes das 12h (modo café... ainda acordando)</i> &nbsp;&nbsp; | &nbsp;&nbsp;
+        <span style="font-size: 1.4em;">🍻</span> <i>Depois das 12h (modo relax... quase sextando)</i>
+      </div>
     </div>
   </div>
 
@@ -227,8 +231,10 @@
           .sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
 
         const temSucesso = grupo.length > 0;
-        const entrada = temSucesso ? grupo[0].hora + " 🍻" : "❌";
-        const saida = temSucesso ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + " 🍻" : "-") : "❌";
+        const entrada = temSucesso ? grupo[0].hora + (grupo[0].hora < "12:00" ? " ☕" : " 🍻") : "❌";
+        const saida = temSucesso
+          ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + (grupo[grupo.length - 1].hora < "12:00" ? " ☕" : " 🍻") : "-")
+          : "❌";
 
         tbody.innerHTML += `
           <tr>
@@ -237,6 +243,7 @@
             <td>${entrada}</td>
             <td>${saida}</td>
           </tr>`;
+
         total++;
         if (temSucesso) sucesso++;
       }
