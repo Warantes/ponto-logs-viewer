@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registros de Ponto</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
   <style>
     body {
@@ -90,7 +91,6 @@
     .btn-primary { background-color: #0d6efd; color: #fff; }
     .btn-warning { background-color: #ffc107; color: #000; }
     .btn-success { background-color: #198754; color: #fff; }
-
     .table-container { overflow-x: auto; }
     table {
       width: 100%;
@@ -114,7 +114,6 @@
     body.dark tbody tr:nth-child(even) {
       background-color: #1e1e1e;
     }
-
     th:nth-child(1), td:nth-child(1) {
       max-width: 90px;
       white-space: nowrap;
@@ -138,7 +137,7 @@
 <body class="dark">
   <div class="container">
     <div class="topbar">
-      <h2>✅ Registros de Ponto</h2>
+      <h2><i class="fa-solid fa-beer"></i> Registros de Ponto</h2>
       <label class="switch">
         <input type="checkbox" id="darkSwitch" checked />
         <span class="slider"></span>
@@ -220,6 +219,7 @@
       tbody.innerHTML = "";
 
       let total = 0, sucesso = 0;
+      const beerIcon = ' <i class="fa-solid fa-beer" style="color:gold;"></i>';
 
       for (const chave in agrupado) {
         const [nome, data] = chave.split("-");
@@ -227,8 +227,8 @@
           .sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
 
         const temSucesso = grupo.length > 0;
-        const entrada = temSucesso ? grupo[0].hora + " ✅" : "❌";
-        const saida = temSucesso ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + " ✅" : "-") : "❌";
+        const entrada = temSucesso ? grupo[0].hora + beerIcon : "❌";
+        const saida = temSucesso ? (grupo.length > 1 ? grupo[grupo.length - 1].hora + beerIcon : "-") : "❌";
 
         tbody.innerHTML += `
           <tr>
