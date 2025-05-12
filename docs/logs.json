@@ -1900,5 +1900,47 @@
     "hora": null,
     "status": "❌ Falha",
     "data": "09/05/2025"
+  },
+  {
+    "nome": "Wagner",
+    "hora": "07:08:04",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
+  },
+  {
+    "nome": "Gordinho",
+    "hora": "07:08:30",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
+  },
+  {
+    "nome": "Marcinho",
+    "hora": "07:08:55",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
+  },
+  {
+    "nome": "Lauro",
+    "hora": "07:09:21",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
+  },
+  {
+    "nome": "Juninho",
+    "hora": "07:09:46",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
+  },
+  {
+    "nome": "Jandir",
+    "hora": "07:10:11",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
+  },
+  {
+    "nome": "Rafael",
+    "hora": "07:10:37",
+    "status": "✅ Sucesso",
+    "data": "12/05/2025"
   }
 ]
