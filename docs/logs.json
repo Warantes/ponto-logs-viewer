@@ -2404,5 +2404,47 @@
     "hora": "17:05:30",
     "status": "✅ Sucesso",
     "data": "16/05/2025"
+  },
+  {
+    "nome": "Wagner",
+    "hora": "07:10:34",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
+  },
+  {
+    "nome": "Gordinho",
+    "hora": "07:11:04",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
+  },
+  {
+    "nome": "Marcinho",
+    "hora": "07:11:33",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
+  },
+  {
+    "nome": "Lauro",
+    "hora": "07:12:04",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
+  },
+  {
+    "nome": "Juninho",
+    "hora": "07:12:40",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
+  },
+  {
+    "nome": "Jandir",
+    "hora": "07:13:09",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
+  },
+  {
+    "nome": "Rafael",
+    "hora": "07:13:39",
+    "status": "✅ Sucesso",
+    "data": "19/05/2025"
   }
 ]
