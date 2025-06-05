@@ -3748,5 +3748,47 @@
     "hora": "17:06:18",
     "status": "✅ Sucesso",
     "data": "04/06/2025"
+  },
+  {
+    "nome": "Wagner",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
+  },
+  {
+    "nome": "Gordinho",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
+  },
+  {
+    "nome": "Marcinho",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
+  },
+  {
+    "nome": "Lauro",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
+  },
+  {
+    "nome": "Juninho",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
+  },
+  {
+    "nome": "Jandir",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
+  },
+  {
+    "nome": "Rafael",
+    "hora": null,
+    "status": "❌ Falha",
+    "data": "05/06/2025"
   }
 ]
