@@ -6832,5 +6832,53 @@
     "hora": null,
     "status": "❌ Falha",
     "data": "22/07/2025"
+  },
+  {
+    "nome": "Wagner",
+    "hora": "23:44:28",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Gordinho",
+    "hora": "23:45:59",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Marcinho",
+    "hora": "23:47:30",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Lauro",
+    "hora": "23:49:01",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Juninho",
+    "hora": "23:50:32",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Jandir",
+    "hora": "23:52:03",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Geraldo",
+    "hora": "23:53:35",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
+  },
+  {
+    "nome": "Rafael",
+    "hora": "23:55:06",
+    "status": "✅ Sucesso",
+    "data": "22/07/2025"
   }
 ]
