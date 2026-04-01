@@ -23422,5 +23422,47 @@
     "hora": "17:14:11",
     "status": "✅ Sucesso",
     "data": "31/03/2026"
+  },
+  {
+    "nome": "Wagner",
+    "hora": "07:43:06",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
+  },
+  {
+    "nome": "Gordinho",
+    "hora": "07:43:36",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
+  },
+  {
+    "nome": "Marcinho",
+    "hora": "07:44:05",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
+  },
+  {
+    "nome": "Lauro",
+    "hora": "07:44:35",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
+  },
+  {
+    "nome": "Jandir",
+    "hora": "07:45:05",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
+  },
+  {
+    "nome": "Geraldo",
+    "hora": "07:45:34",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
+  },
+  {
+    "nome": "Rafael",
+    "hora": "07:46:04",
+    "status": "✅ Sucesso",
+    "data": "01/04/2026"
   }
 ]
